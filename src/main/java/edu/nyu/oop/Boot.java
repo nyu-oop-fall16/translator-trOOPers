@@ -95,35 +95,7 @@ public class Boot extends Tool {
             //runtime.console().p("MEEEEE" + nodes.get(0).getName()).flush();
         }
 
-//        // trying to generate a list of gnodes of all the test classes
-//        if (runtime.test("generateListOfGNodes")){
-//
-////            List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
-////            List<List<GNode>> stuff = new ArrayList<List<GNode>>();
-////            stuff.add(nodes);
-////            List<GNode> stuff = new ArrayList<>();
-//            GNode[] stuff = new GNode[100];
-//            //stuff.set(0,(GNode) n);
-////            stuff.add((GNode)n);
-//            stuff[0] = (GNode) n;
-//            GetListOfTests listOfTests = new GetListOfTests();
-//            try{
-//                stuff = listOfTests.getFile();
-//            }
-//            catch(IOException e){}
-//            catch(ParseException e){}
-//
-//            //make sure it is at 0
-////            stuff.set(0,(GNode) n);
-////            stuff.add((GNode) n);
-//            stuff[0] = (GNode) n;
-//            for(int i = 0; i < 20; i++) {
-//                runtime.console().p("hiii " + i + ": " + stuff[i]).pln().flush();
-//            }
-//        }
-
-
-        // Note - for cyclic dependencies - there node imported
+        // Generates list of GNodes with its dependencies
         if (runtime.test("generateListGNodes")){
             // create the list
             List<GNode> g = new ArrayList<GNode>();
@@ -134,10 +106,6 @@ public class Boot extends Tool {
             List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
 
             // add the dependencies to the list
-//            for(int i = 0; i < nodes.size(); i++) {
-//                g.add(nodes.get(i));
-//            }
-
             for(int i = 0; i < nodes.size(); i++) {
                 // makes sure that a GNode isn't added to list multiple times during cyclic imports
                 if(!g.contains(nodes.get(i))) {

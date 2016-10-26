@@ -1,6 +1,9 @@
 package edu.nyu.oop;
 
+import xtc.tree.Node;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 
 /*This class object is designed to hold information about a particular class including:
@@ -14,9 +17,10 @@ import java.util.HashMap;
 
 public class ClassInfo {
     private String name;
-    private String modifier;
-    private ArrayList<String> cParameters = new ArrayList<String>();
-    private HashMap<String,String> fields = new HashMap<String,String>();
+    private Node modifier;
+    private Node constructor;
+    private List<Node> cParameters = new ArrayList<Node>();
+    private List<Node> fields = new ArrayList<Node>();
     private HashMap<String,MethodInfo> methods = new HashMap<String,MethodInfo>();
 
     //Constructor
@@ -31,17 +35,18 @@ public class ClassInfo {
         return name;
     }
 
-    public void setModifier(String modifier) {
+    public void setModifier(Node modifier) {
         this.modifier = modifier;
     }
-    public String getModifier(String modifier) {
+    public Node getModifier() {
         return modifier;
     }
 
-    public void putField(String type, String name) {
-        fields.put(name,type);
+    public void addFields(Node name) {
+        fields.add(name);
     }
-    public HashMap<String,String> getFields() {
+
+    public List<Node> getFields() {
         return fields;
     }
 
@@ -53,7 +58,13 @@ public class ClassInfo {
     }
 
 
+    public void setConstructor(Node c) {
+        this.constructor = c;
+    }
 
+    public Node getConstructor() {
+        return this.constructor;
+    }
 
 
 

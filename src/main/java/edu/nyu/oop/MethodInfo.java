@@ -1,13 +1,16 @@
 package edu.nyu.oop;
 
+import xtc.tree.Node;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class MethodInfo {
     private boolean ifStatic;
-    private String modifier;
-    private String returnType;
+    private List<Node> modifiers = new ArrayList<Node>();
+    private Node returnType;
     private String name;
-    private ArrayList<String> mParameters = new ArrayList<String>();
+    private ArrayList<Node> mParameters = new ArrayList<Node>();
 
     //Constructor
 
@@ -21,19 +24,19 @@ public class MethodInfo {
         return ifStatic;
     }
 
-    public void setModifier(String modifier) {
-        this.modifier = modifier;
+    public void addModifier(Node modifier) {
+        modifiers.add(modifier);
     }
 
-    public String getModifier() {
-        return modifier;
+    public List<Node> getModifiers() {
+        return modifiers;
     }
 
-    public void setReturnType(String returnType) {
+    public void setReturnType(Node returnType) {
         this.returnType = returnType;
     }
 
-    public String getReturnType() {
+    public Node getReturnType() {
         return returnType;
     }
 
@@ -44,10 +47,10 @@ public class MethodInfo {
         return name;
     }
 
-    public void addParameter(String mParameter) {
+    public void addParameter(Node mParameter) {
         this.mParameters.add(mParameter);
     }
-    public ArrayList<String> getParameter() {
+    public ArrayList<Node> getParameter() {
         return mParameters;
     }
 

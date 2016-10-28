@@ -1,5 +1,6 @@
 package edu.nyu.oop;
 
+import xtc.tree.GNode;
 import xtc.tree.Node;
 
 import java.util.ArrayList;
@@ -16,22 +17,19 @@ import java.util.HashMap;
 */
 
 public class ClassInfo {
-    private String name;
+    // private Node parent = whatever this class extends ("Object" if nothing else)
+    private GNode name;
     private Node modifier;
-    private Node constructor;
-    private List<Node> cParameters = new ArrayList<Node>();
+    private Node constructorParams;
     private List<Node> fields = new ArrayList<Node>();
     private HashMap<String,MethodInfo> methods = new HashMap<String,MethodInfo>();
 
-    //Constructor
-
-
     //Set and get methods for the information held within an headerClass object.
 
-    public void setName(String name) {
-        this.name = name;
+    public void setName(String n) {
+        name = GNode.create(n);
     }
-    public String getName() {
+    public GNode getName() {
         return name;
     }
 
@@ -51,19 +49,19 @@ public class ClassInfo {
     }
 
     public void addMethod(MethodInfo method) {
-        methods.put(method.getName(),method);
+        methods.put(method.getName().getString(0),method);
     }
     public HashMap<String,MethodInfo> getMethods() {
         return methods;
     }
 
 
-    public void setConstructor(Node c) {
-        this.constructor = c;
+    public void setConstructorParams(Node c) {
+        this.constructorParams = c;
     }
 
-    public Node getConstructor() {
-        return this.constructor;
+    public Node getConstructorParams() {
+        return this.constructorParams;
     }
 
 

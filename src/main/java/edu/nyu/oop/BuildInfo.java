@@ -9,35 +9,98 @@ import xtc.tree.Node;
 import xtc.tree.Visitor;
 
 public class BuildInfo {
-    // BuildInfo holds a list of classes that were defined int he Java file.
-    List<Node> packages = new ArrayList<Node>();
-    HashMap<String,ClassInfo> classes = new HashMap<String,ClassInfo>();
+    // BuildInfo holds a list of classes that were defined in the Java file.
+    private List<Node> packages = new ArrayList<Node>();
+    public HashMap<String,ClassInfo> classes = new HashMap<String,ClassInfo>();
 
     // Include Import Statements!
 
     public GNode makeAST() {
+        GNode completeAST = GNode.create("AST");
+
         // Do package import somehow
+        // struct declarations
 
-        // Create base node, one for each class (Node's name is name of class)
-            // HeaderDeclaration node to encapsulate all of it
-                // DataLayout node
-                    // add Field Declarations
-                    // Create Constructor Node
-                        // Write in className
-                        // Put in constructor node saved in ClassInfo
-                    // add Method Declarations
-                        // add everything from the MethodInfo object
+        for (String s: classes.keySet()) {
+            ClassInfo c = classes.get(s);
 
+            GNode thisClass = GNode.create(c.getName().getString(0));
+            GNode dataLayout = createDataLayout(c);
+            GNode vTable = createVTable(c);
 
-
-        GNode g;
-        return g;
+            thisClass.add(dataLayout);
+            thisClass.add(vTable);
+            completeAST.add(thisClass);
+        }
+        return completeAST;
     }
-
 
     public void addPackage(Node n) {
         packages.add(n);
     }
 
+    private GNode createDataLayout(ClassInfo c) {
+        GNode dataLayout = GNode.create("Data Layout");
+        GNode fields = GNode.create("Fields");
+
+        // Make the field declarations
+        for (Node f: c.getFields()) {
+            fields.add(f);
+        }
+
+        dataLayout.add(fields);
+
+        // Make the constructor
+        GNode constructorDec = GNode.create("Constructor Declaration");
+        constructorDec.add(c.getName());
+        constructorDec.add(c.getConstructorParams());
+        dataLayout.add(constructorDec);
+
+        // Add Method Nodes to Data Layout
+        GNode methodDecs = GNode.create("Method Declarations");
+        for (String str: c.getMethods().keySet()) {
+            GNode newMethod = GNode.create("D.L. Method Declaration");
+            MethodInfo method = c.getMethods().get(str);
+
+            newMethod.add(method.getReturnType());
+            newMethod.add(method.getName().getString(0));
+
+            GNode mod = GNode.create("Modifier");
+            mod.add("static");
+            newMethod.add(mod);
+
+            for (Node n: method.getParameter()) {
+                newMethod.add(n);
+            }
+
+            methodDecs.add(newMethod);
+        }
+        dataLayout.add(methodDecs);
+        return dataLayout;
+    }
+
+    private GNode createVTable(ClassInfo c) {
+        GNode vTable = GNode.create("VTable");
+        for (String str: c.getMethods().keySet()) {
+            GNode newMethod = GNode.create("V.T. Method Declaration");
+            MethodInfo method = c.getMethods().get(str);
+
+            newMethod.add(method.getReturnType());
+            newMethod.add(method.getName().getString(0));
+
+            GNode mod = GNode.create("Modifier");
+            mod.add("static");
+            newMethod.add(mod);
+
+            for (Node n: method.getParameter()) {
+                newMethod.add(n);
+            }
+
+            vTable.add(newMethod);
+        }
+        return vTable;
+
+
+    }
 
 }

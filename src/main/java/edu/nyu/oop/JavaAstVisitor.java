@@ -10,7 +10,7 @@ import xtc.tree.Visitor;
 import java.util.List;
 import java.util.ArrayList;
 
-public class JavaAstVistor extends Visitor {
+public class JavaAstVisitor extends Visitor {
     private Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
 
     private BuildInfo information = new BuildInfo();
@@ -34,7 +34,7 @@ public class JavaAstVistor extends Visitor {
             thisClass.addFields(NodeUtil.dfs(n, "FieldDeclaration"));
 
             Node constructorDec = NodeUtil.dfs(n, "ConstructorDeclaration");
-            thisClass.setConstructor(NodeUtil.dfs(constructorDec, "FormalParameters"));
+            thisClass.setConstructorParams(NodeUtil.dfs(constructorDec, "FormalParameters"));
 
             information.classes.put(currentClass,thisClass);
 
@@ -45,11 +45,11 @@ public class JavaAstVistor extends Visitor {
 
     public void visitMethodDeclaration(GNode n) {
         currentMethod = n.getName();
-        MethodInfo thisMethod  = new MethodInfo();
+        MethodInfo thisMethod = new MethodInfo();
         thisMethod.setName(currentMethod);
 
         // Find modifiers and add them to the ClassInfo Object
-        for (Node m: NodeUtil.dfsAll(n, "Modifiers")) {
+        for (Node m : NodeUtil.dfsAll(n, "Modifiers")) {
             thisMethod.addModifier(m);
         }
 
@@ -57,27 +57,23 @@ public class JavaAstVistor extends Visitor {
         Node typeTest = NodeUtil.dfs(n, "Type");
         if (typeTest.equals(null)) {
             thisMethod.setReturnType(NodeUtil.dfs(n, "VoidType"));
-        }
-        else {
+        } else {
             thisMethod.setReturnType(NodeUtil.dfs(n, "Type"));
         }
 
         // Set parameters of the method
-        for (Node p: NodeUtil.dfsAll(n, "FormalParameters")) {
+        for (Node p : NodeUtil.dfsAll(n, "FormalParameters")) {
             thisMethod.addParameter(p);
+            // add itself as a parameter
         }
 
         information.classes.get(currentClass).addMethod(thisMethod);
 
     }
 
-
-
-
-
     public void visit(Node n) {
         for (Object o : n) if (o instanceof Node) dispatch((Node) o);
     }
-
+    public BuildInfo getBuildInfo() { return information; }
 
 }

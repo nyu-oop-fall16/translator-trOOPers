@@ -8,7 +8,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-public class BuildInfo {
+public class HeaderASTMaker {
     // BuildInfo holds a list of classes that were defined in the Java file.
     private List<Node> packages = new ArrayList<Node>();
     public HashMap<String,ClassInfo> classes = new HashMap<String,ClassInfo>();
@@ -17,21 +17,27 @@ public class BuildInfo {
 
     public GNode makeAST() {
         GNode completeAST = GNode.create("AST");
-
-        // Do package import somehow
-        // struct declarations
+        GNode headerDec = GNode.create("HeaderDeclaration");
+        GNode namespaceDec = GNode.create("NamespaceDeclaration");
+        // package imports?
+        headerDec.add(namespaceDec);
 
         for (String s: classes.keySet()) {
             ClassInfo c = classes.get(s);
 
-            GNode thisClass = GNode.create(c.getName().getString(0));
+            GNode thisClass = GNode.create("ClassDeclaration");
+            GNode className = GNode.create("ClassName");
+            className.add("__"+ c.getName().getString(0));
+            thisClass.add(className);
+
             GNode dataLayout = createDataLayout(c);
             GNode vTable = createVTable(c);
 
             thisClass.add(dataLayout);
             thisClass.add(vTable);
-            completeAST.add(thisClass);
+            headerDec.add(thisClass);
         }
+        completeAST.add(headerDec);
         return completeAST;
     }
 

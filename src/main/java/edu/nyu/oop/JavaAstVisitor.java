@@ -74,6 +74,6 @@ public class JavaAstVisitor extends Visitor {
     public void visit(Node n) {
         for (Object o : n) if (o instanceof Node) dispatch((Node) o);
     }
-    public BuildInfo getBuildInfo() { return information; }
+    public BuildInfo getASTInfo() { return information; }
 
 }

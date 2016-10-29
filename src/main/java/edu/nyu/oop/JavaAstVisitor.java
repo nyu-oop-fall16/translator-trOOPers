@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class JavaAstVisitor extends Visitor {
     private Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
 
-    private BuildInfo information = new BuildInfo();
+    private HeaderASTMaker information = new HeaderASTMaker();
 
     //The following visit_____ methods will visit the nodes of the Java AST and fill out the BuildInfo object defined above.
     //This information held in the BuildInfo class will then be used to create the AST for the header file and the cpp file.
@@ -74,6 +74,6 @@ public class JavaAstVisitor extends Visitor {
     public void visit(Node n) {
         for (Object o : n) if (o instanceof Node) dispatch((Node) o);
     }
-    public BuildInfo getBuildInfo() { return information; }
+    public HeaderASTMaker getASTInfo() { return information; }
 
 }

@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 
-import edu.nyu.oop.util.JavaFiveImportParser;
-import edu.nyu.oop.util.NodeUtil;
-import edu.nyu.oop.util.XtcProps;
+import java.util.ArrayList; // we imported
+
+import edu.nyu.oop.util.*;
 import org.slf4j.Logger;
+
+import edu.nyu.oop.util.CPlusPlusHeaderMaker; // Me add
 
 import xtc.tree.GNode;
 import xtc.tree.Node;
@@ -25,6 +27,8 @@ import xtc.parser.ParseException;
  */
 public class Boot extends Tool {
     private Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
+
+    List<GNode> g = new ArrayList<GNode>(); // my additions
 
     @Override
     public String getName() {
@@ -43,7 +47,10 @@ public class Boot extends Tool {
         runtime.
         bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
         bool("printJavaCode", "printJavaCode", false, "Print Java code.").
-        bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.");
+        bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
+        bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
+        bool("generateHeaderOutput", "generateHeaderOutput", false, "Prints definitions into the output.h file.").
+        bool("phaseFour", "phaseFour", false, "Mutates the Java Ast files to correspond with C++ files.");
     }
 
     @Override
@@ -71,6 +78,7 @@ public class Boot extends Tool {
         return NodeUtil.parseJavaFile(file);
     }
 
+    private List<GNode> listGNodes = new ArrayList<GNode>();// me add
     @Override
     public void process(Node n) {
         if (runtime.test("printJavaAst")) {
@@ -91,7 +99,51 @@ public class Boot extends Tool {
             runtime.console().flush();
         }
 
+//        // create the list
+//        List<GNode> g = new ArrayList<GNode>();
+        // Generates list of GNodes with its dependencies
+        if (runtime.test("generateListGNodes")) {
+            // create the list
+//            List<GNode> g = new ArrayList<GNode>();
+            // add the GNode of the java class passed in
+            g.add((GNode) n);
+
+            // should be a list of all dependencies and their dependencies recursively gotten
+            List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
+
+            // add the dependencies to the list
+            for (int i = 0; i < nodes.size(); i++) {
+                // makes sure that a GNode isn't added to list multiple times during cyclic imports
+                if (!g.contains(nodes.get(i))) {
+                    g.add(nodes.get(i));
+                }
+            }
+
+
+            // checks the nodes in list
+//            runtime.console().p("Size of GNodes List: " + g.size()).pln().flush();
+            for (int k = 0; k < g.size(); k++) {
+                runtime.console().p("List of GNodes, GNode at index " + k + ": " + g.get(k)).pln().flush();
+                runtime.console().pln().flush();
+            }
+
+        }
         // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
+
+//        GNode cppHeader = g.get(1); // phase 2 creates
+//        if(runtime.test("generateHeaderOutput")){
+//            // prints to output.h
+////            CPlusPlusHeaderMaker.printCHeaderFile(cppHeader);
+//        }
+
+        if(runtime.test("phaseFour")){
+//            MutateJavaAst m = new MutateJavaAst(g.get(0));
+//            MutateJavaAst m = new MutateJavaAst(g.get(0));
+            GNode m = MutateJavaAst.mutate(g.get(0));
+//            runtime.console().p("Mutations: " + m).pln().flush();
+            runtime.console().p("Mutate: " + m).pln().flush();
+        }
+
     }
 
     /**
@@ -99,7 +151,5 @@ public class Boot extends Tool {
      *
      * @param args The command line arguments.
      */
-    public static void main(String[] args) {
-        new Boot().run(args);
-    }
+    public static void main(String[] args) {new Boot().run(args);}
 }

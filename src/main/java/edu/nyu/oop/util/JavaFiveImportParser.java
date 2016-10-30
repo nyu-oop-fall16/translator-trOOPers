@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.LinkedList;
 
+import java.util.ArrayList;
+
 /**
  * This is a utility class which will load the source files for anything referenced by the primary source.
  * Note that it does *not* do this recursively. In other words, it will not return nodes representing the
@@ -26,8 +28,12 @@ public class JavaFiveImportParser {
 
     private static List<String> inputLocations = loadInputLocations();
 
+    private static List<GNode> primarySources = new ArrayList<>(); // stores the primary sources parse is run on - My additions
+
     public static List<GNode> parse(final GNode primarySrc) {
         final List<GNode> importedSources = new LinkedList<GNode>();
+
+        primarySources.add(primarySrc); // add the node that is checked for imports - My additions
 
         new Visitor() {
 
@@ -84,6 +90,13 @@ public class JavaFiveImportParser {
             }
 
         } .dispatch(primarySrc);
+
+        // get dependencies of dependencies - My additions
+        if(!importedSources.isEmpty()) {
+            if (!primarySources.contains(importedSources.get(0))) { // this prevents cyclic imports
+                importedSources.addAll(parse(importedSources.get(0))); // recursively gets the dependencies
+            }
+        }
 
         return importedSources;
     }

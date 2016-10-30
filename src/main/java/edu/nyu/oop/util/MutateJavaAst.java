@@ -110,12 +110,11 @@ public class MutateJavaAst extends Visitor {
             }
 
             public void visitExpressionStatement(GNode n) {
-//                GNode primaryIdentifier = GNode.create("PrimaryIdentifier","std");
-//                GNode selectionExpressionStart = GNode.create("SelectionExpression",primaryIdentifier,"cout");
-//                GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");
-//                GNode stringLiteral = GNode.create("StringLiteral", "\"Hello.\"");
-//                GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,stringLiteral,selectionExpressionEnd);
-                GNode callExpression = printExpressionNode("\"Hello.\"");
+                GNode primaryIdentifier = GNode.create("PrimaryIdentifier","std");
+                GNode selectionExpressionStart = GNode.create("SelectionExpression",primaryIdentifier,"cout");
+                GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");
+                GNode stringLiteral = GNode.create("StringLiteral", "\"Hello.\"");
+                GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,stringLiteral,selectionExpressionEnd);
                 n.set(0, callExpression);
                 visit(n);
             }

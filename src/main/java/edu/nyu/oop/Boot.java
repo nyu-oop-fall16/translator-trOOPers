@@ -1,22 +1,21 @@
 package edu.nyu.oop;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.List;
-
-import java.util.ArrayList; // we imported
-
-import edu.nyu.oop.util.*;
+import edu.nyu.oop.util.JavaFiveImportParser;
+import edu.nyu.oop.util.MutateJavaAst;
+import edu.nyu.oop.util.NodeUtil;
+import edu.nyu.oop.util.XtcProps;
 import org.slf4j.Logger;
-
-import edu.nyu.oop.util.CPlusPlusHeaderMaker; // Me add
-
+import xtc.lang.JavaPrinter;
+import xtc.parser.ParseException;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.util.Tool;
-import xtc.lang.JavaPrinter;
-import xtc.parser.ParseException;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is the entry point to your program. It configures the user interface, defining
@@ -50,7 +49,8 @@ public class Boot extends Tool {
         bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
         bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
         bool("generateHeaderOutput", "generateHeaderOutput", false, "Prints definitions into the output.h file.").
-        bool("phaseFour", "phaseFour", false, "Mutates the Java Ast files to correspond with C++ files.");
+        bool("phaseFour", "phaseFour", false, "Mutates the Java Ast files to correspond with C++ files.").
+        bool("phase5", "phase5", false, "Load output file first");
     }
 
     @Override
@@ -147,6 +147,19 @@ public class Boot extends Tool {
 //            runtime.console().p("Mutate: " + m).pln().flush();
         }
 
+        //find the parent path
+        if (runtime.test("phase5")) {
+            try{
+//                File newf=this.locate(XtcProps.get("output.location")+"/output.cpp");
+                File newf=new File(XtcProps.get("output.location")+"/output.cpp");
+//                runtime.console().p(newf.getAbsolutePath()).pln().flush();
+
+            }catch(Exception e){
+                runtime.console().p(e.toString()).pln().flush();
+            }
+
+
+        }
     }
 
     /**

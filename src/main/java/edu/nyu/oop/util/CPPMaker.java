@@ -1,40 +1,71 @@
 package edu.nyu.oop.util;
 
 import java.io.*;
-import java.util.LinkedList;
-import java.util.List;
 
 import xtc.tree.GNode;
+import xtc.tree.Node;
+import xtc.tree.Visitor;
 
 import org.slf4j.Logger;
 
 public class CPPMaker {
     private static Logger logger = org.slf4j.LoggerFactory.getLogger(JavaFiveImportParser.class);
 
+    public static void printToCpp(GNode n) {
+        new Visitor() {
+            public void visitPackageDeclaration(GNode n){
+                printToOutputCpp();
+            }
 
-    // given an ast, generate the main.cpp and output.cpp files
-    public static void printToOutputCpp(GNode n) {
-        // Create a printwriter for output.cpp file
-        File output = loadOutputCpp();
-        try {
-            PrintWriter outputWriter = new PrintWriter(output);
-        } catch (FileNotFoundException e) {
-            logger.warn("Invalid path for file " + output);
-        }
-    }
+            // given an ast, generate the main.cpp and output.cpp files
+            public void printToOutputCpp(GNode n) {
+                // Create a printwriter for output.cpp file
+                File output = loadOutputCpp();
+                PrintWriter outputWriter = null;
+                try {
+                    outputWriter = new PrintWriter(output);
+                } catch (FileNotFoundException e) {
+                    logger.warn("Invalid path for file " + output);
+                }
 
-    public static void printToMainCpp(GNode n){
-        // create a printwriter for main.cpp file
-        File main = loadMainCpp();
-        try{
-            PrintWriter outputWriter = new PrintWriter(main);
-        }
-        catch(FileNotFoundException e){
-            logger.warn("Invalid path for file " + main);
-        }
+//                // Traverse nodes and print the implementation into cpp files
+//                new Visitor() {
+//
+//                    // TODO: Generate output.cpp file implementations
+//
+//                    // implement method for visiting the nodes
+//                    public void visit(Node n) {
+//                        for (Object o : n) {
+//                            if (o instanceof Node) dispatch((Node) o);
+//                        }
+//                    }
+//                }.dispatch(n);
 
-    }
+                // closes outputwriter and flushes to main.cpp file
+                outputWriter.close();
+            }
 
+            public void printToMainCpp(GNode n) {
+                // create a printwriter for main.cpp file
+                File main = loadMainCpp();
+                PrintWriter mainWriter = null;
+                try {
+                    mainWriter = new PrintWriter(main);
+                } catch (FileNotFoundException e) {
+                    logger.warn("Invalid path for file " + main);
+                }
+
+                mainWriter.close();
+            }
+            // implement method for visiting the nodes
+            public void visit(Node n) {
+                for (Object o : n) {
+                    if (o instanceof Node) dispatch((Node) o);
+                }
+            }
+        }.dispatch(n);
+
+}
 
     // returns the output.cpp file
     private static File loadOutputCpp() {
@@ -47,5 +78,6 @@ public class CPPMaker {
         File mainCPP = new File(XtcProps.get("output.location") + "/main.cpp");
         return mainCPP;
     }
+
 
 }

@@ -23,12 +23,23 @@ public class MutateJavaAst extends Visitor {
 
         new Visitor() {
             public void visitClassDeclaration(GNode n){
-                if(!n.getNode(0).isEmpty()){
-                    if(n.getNode(0).getNode(0).getString(0).equals("public")){
-                        n.getNode(0).getNode(0).set(0,"namespace");
+                if(!n.getNode(0).isEmpty()) {//if it's main class
+                    if (n.getNode(0).getNode(0).getString(0).equals("public")) {
+                        n.getNode(0).getNode(0).set(0, "namespace");
+                    }
+                }else{//if it's class declaration
+                    String classname=n.getString(1);
+                    Node para=n.getNode(5).getNode(0);
+                    if(para.getNode(4).getName().equals("FormalParameters")){
+//                        System.out.println("formal paramters");
+                        if(para.getNode(4).isEmpty()) {
+                            GNode newparameter = GNode.create("FormalParameters", classname, "__this");
+                            para.set(4, newparameter);
+                        }
                     }
                 }
                 visit(n);
+
             }
 
             public void visitMethodDeclaration(GNode n) {
@@ -43,6 +54,23 @@ public class MutateJavaAst extends Visitor {
                     GNode formalParameters = GNode.create("FormalParameters");
                     n.set(4, formalParameters);
                 }
+                visit(n);
+            }
+
+            public void visitFieldDeclaration(GNode n) {
+                System.out.println("HIIIIIIIIIIIIIIIII Field Declarations");
+                Node newclass=n.getNode(2).getNode(0).getNode(2);
+                if(newclass.getName().equals("NewClassExpression")){
+                    String classname=newclass.getNode(2).getString(0);
+                    newclass.getNode(2).set(0,"__"+classname);
+
+                }
+
+//                if(n.getNode(2).getNode(0).getNode(2).getName().equals("NewClassExpression")) {
+//                    Node newclass = n.getNode(2).getNode(0).getNode(2).getNode(2);
+//                    String classname = newclass.getString(0);
+//                    newclass.set(0, "__" + classname);
+//                }
                 visit(n);
             }
 

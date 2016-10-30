@@ -94,10 +94,10 @@ public class MutateJavaAst extends Visitor {
 
             public void visitFieldDeclaration(GNode n) {
                 System.out.println("HIIIIIIIIIIIIIIIII Field Declarations");
-                Node newclass=n.getNode(2).getNode(0).getNode(2);
-                if(newclass.getName().equals("NewClassExpression")) {
-                    String classname=newclass.getNode(2).getString(0);
-                    newclass.getNode(2).set(0,"__"+classname);
+                Node newclass = n.getNode(2).getNode(0).getNode(2);
+                if (newclass.getName().equals("NewClassExpression")) {
+                    String classname = newclass.getNode(2).getString(0);
+                    newclass.getNode(2).set(0, "__" + classname);
 
                 }
 
@@ -115,7 +115,7 @@ public class MutateJavaAst extends Visitor {
 //                GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");
 //                GNode stringLiteral = GNode.create("StringLiteral", "\"Hello.\"");
 //                GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,stringLiteral,selectionExpressionEnd);
-                GNode callExpression = printNode("\"Hello.\"");
+                GNode callExpression = printExpressionNode("\"Hello.\"");
                 n.set(0, callExpression);
                 visit(n);
             }
@@ -130,13 +130,13 @@ public class MutateJavaAst extends Visitor {
 //                visit(n);
 //            }
 
-            public void visit (Node n) {
+            public void visit(Node n) {
                 for (Object o : n) {
                     if (o instanceof Node) dispatch((Node) o);
                 }
             }
 
-        } .dispatch(n);
+        }.dispatch(n);
 
         return n;
     }

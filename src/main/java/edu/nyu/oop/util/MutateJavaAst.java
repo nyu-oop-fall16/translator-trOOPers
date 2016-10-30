@@ -142,7 +142,7 @@ public class MutateJavaAst extends Visitor {
     }
 
     // method used whenever something has to be printed
-    private static GNode printNode(Object o) {
+    private static GNode printExpressionNode(Object o) {
         GNode primaryIdentifier = GNode.create("PrimaryIdentifier","std");
         GNode selectionExpressionStart = GNode.create("SelectionExpression",primaryIdentifier,"cout");
         GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");

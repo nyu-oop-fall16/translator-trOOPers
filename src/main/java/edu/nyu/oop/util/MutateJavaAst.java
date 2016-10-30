@@ -4,42 +4,28 @@ import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-/**
- * Created by AnnaChiu on 10/26/16.
- */
 public class MutateJavaAst extends Visitor {
-    GNode astGNode;
-//    Runtime runtime;
 
-//    public MutateJavaAst(GNode node){
-//       this.astGNode = node;
-//    }
-
-    //    public MutateJavaAst(Runtime runtime){
-//        this.runtime = runtime;
-//    }
-
+    // mutates the given java ast to reflect a c++ ast
     public static GNode mutate(GNode n) {
-
         new Visitor() {
+            // visit ClassDeclaration and make following changes
             public void visitClassDeclaration(GNode n) {
-                if (!n.getNode(0).isEmpty()) {//if it's main class
+                if (!n.getNode(0).isEmpty()) { //if it's the testXXX class
                     if (n.getNode(0).getNode(0).getString(0).equals("public")) {
                         n.getNode(0).getNode(0).set(0, "namespace");
-                    } else {//if it's class declaration
+                    } else { //if it's class declaration that's not testXXX
                         String classname = n.getString(1);
                         //pass "__this" as parameter
                         Node methoddeclaration = n.getNode(5).getNode(0);
                         if (methoddeclaration.getNode(4).getName().equals("FormalParameters")) {
-//                        System.out.println("formal paramters");
+//                        System.out.println("formal parameters");
                             if (methoddeclaration.getNode(4).isEmpty()) {
                                 GNode newparameter = GNode.create("FormalParameters", classname, "__this");
                                 methoddeclaration.set(4, newparameter);
                             }
                         }
 
-
-                        /////////////////////
                         System.out.println("yayyyyyyyyyyyyyyyyyyyyy");
 
                         GNode constructor = GNode.create("ConstructorDeclaration", "__" + classname, "__vptr", "&__vtable");
@@ -55,7 +41,6 @@ public class MutateJavaAst extends Visitor {
 //                                    "fld"
 //                            )
 //                    )
-
                         GNode returnblock = GNode.create("Block", classmethoddecla, GNode.create("ReturnStatement", "k"));
 
 //                    GNode classmethod=GNode.create("ClassMethodDeclaration",GNode.create("Modifiers","static"),class_classmethodtype,class_declarators);
@@ -70,8 +55,6 @@ public class MutateJavaAst extends Visitor {
 
                         GNode classbody = GNode.create("ClassBody", constructor, methoddeclaration, classmethod, vtabledeclaration);
                         n.set(5, classbody);
-
-
                     }
                 }
                 visit(n);
@@ -80,6 +63,8 @@ public class MutateJavaAst extends Visitor {
             public void visitMethodDeclaration(GNode n) {
                 System.out.println("HIIIIIIIIIIIIIIIII Method Declarations");
 //                System.out.println(n.getString(3));
+
+                // if main method, do adjustments to modifiers, type, and parameters to refect C++ main method signature
                 if (n.getString(3).equals("main")) {
                     System.out.println("HIIIIIIIIIIIIIIIII Main");
                     GNode modifiers = GNode.create("Modifiers");
@@ -111,11 +96,7 @@ public class MutateJavaAst extends Visitor {
             }
 
             public void visitExpressionStatement(GNode n) {
-                GNode primaryIdentifier = GNode.create("PrimaryIdentifier","std");
-                GNode selectionExpressionStart = GNode.create("SelectionExpression",primaryIdentifier,"cout");
-                GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");
-                GNode stringLiteral = GNode.create("StringLiteral", "\"Hello.\"");
-                GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,stringLiteral,selectionExpressionEnd);
+                GNode callExpression = printExpressionNode(n.getNode(0).getNode(3));
                 n.set(0, callExpression);
                 visit(n);
             }
@@ -130,6 +111,7 @@ public class MutateJavaAst extends Visitor {
 //                visit(n);
 //            }
 
+            // implement method for visiting the nodes
             public void visit(Node n) {
                 for (Object o : n) {
                     if (o instanceof Node) dispatch((Node) o);
@@ -146,11 +128,12 @@ public class MutateJavaAst extends Visitor {
         GNode primaryIdentifier = GNode.create("PrimaryIdentifier","std");
         GNode selectionExpressionStart = GNode.create("SelectionExpression",primaryIdentifier,"cout");
         GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");
-        GNode printLine = GNode.create("Argument",o);
+        GNode printLine = NodeUtil.deepCopyNode((GNode) o);
         GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,printLine,selectionExpressionEnd);
         return callExpression;
     }
 
+    // method to change the types
     private static GNode methodTypes(Object o){
         GNode qualifiedIdentifier = GNode.create("QualifiedIdentifier", o);
         GNode type = GNode.create("Type", qualifiedIdentifier);

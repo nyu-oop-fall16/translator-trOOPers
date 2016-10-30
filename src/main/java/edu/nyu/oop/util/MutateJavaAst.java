@@ -3,7 +3,6 @@ package edu.nyu.oop.util;
 import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
-import xtc.util.Runtime;
 
 /**
  * Created by AnnaChiu on 10/26/16.
@@ -24,11 +23,12 @@ public class MutateJavaAst extends Visitor {
 
         new Visitor() {
             public void visitClassDeclaration(GNode n){
-                if(n.getNode(0) != null){
+                if(!n.getNode(0).isEmpty()){
                     if(n.getNode(0).getNode(0).getString(0).equals("public")){
                         n.getNode(0).getNode(0).set(0,"namespace");
                     }
                 }
+                visit(n);
             }
 
             public void visitMethodDeclaration(GNode n) {
@@ -47,11 +47,12 @@ public class MutateJavaAst extends Visitor {
             }
 
             public void visitExpressionStatement(GNode n){
-                GNode primaryIdentifier = GNode.create("PrimaryIdentifier","std");
-                GNode selectionExpressionStart = GNode.create("SelectionExpression",primaryIdentifier,"cout");
-                GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");
-                GNode stringLiteral = GNode.create("StringLiteral", "\"Hello.\"");
-                GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,stringLiteral,selectionExpressionEnd);
+//                GNode primaryIdentifier = GNode.create("PrimaryIdentifier","std");
+//                GNode selectionExpressionStart = GNode.create("SelectionExpression",primaryIdentifier,"cout");
+//                GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");
+//                GNode stringLiteral = GNode.create("StringLiteral", "\"Hello.\"");
+//                GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,stringLiteral,selectionExpressionEnd);
+                GNode callExpression = printNode("\"Hello.\"");
                 n.set(0, callExpression);
                 visit(n);
             }
@@ -75,5 +76,15 @@ public class MutateJavaAst extends Visitor {
         }.dispatch(n);
 
         return n;
+    }
+
+    // method used whenever something has to be printed
+    private static GNode printNode(Object o){
+        GNode primaryIdentifier = GNode.create("PrimaryIdentifier","std");
+        GNode selectionExpressionStart = GNode.create("SelectionExpression",primaryIdentifier,"cout");
+        GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");
+        GNode printLine = GNode.create("Argument",o);
+        GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,printLine,selectionExpressionEnd);
+        return callExpression;
     }
 }

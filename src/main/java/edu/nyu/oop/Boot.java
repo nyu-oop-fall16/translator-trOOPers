@@ -123,7 +123,8 @@ public class Boot extends Tool {
             // checks the nodes in list
 //            runtime.console().p("Size of GNodes List: " + g.size()).pln().flush();
             for (int k = 0; k < g.size(); k++) {
-                runtime.console().p("List of GNodes, GNode at index " + k + ": " + g.get(k)).pln().flush();
+                runtime.console().p("List of GNodes, GNode at index " + k + ": ").format(g.get(k)).pln().flush();
+//                runtime.console().p("List of GNodes, GNode at index " + k + ": " + g.get(k)).pln().flush();
                 runtime.console().pln().flush();
             }
 
@@ -141,7 +142,9 @@ public class Boot extends Tool {
 //            MutateJavaAst m = new MutateJavaAst(g.get(0));
             GNode m = MutateJavaAst.mutate(g.get(0));
 //            runtime.console().p("Mutations: " + m).pln().flush();
-            runtime.console().p("Mutate: " + m).pln().flush();
+            runtime.console().p("Mutate: ").format(m).pln().flush();
+
+//            runtime.console().p("Mutate: " + m).pln().flush();
         }
 
     }

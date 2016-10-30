@@ -31,8 +31,9 @@ public class HeaderFileMaker {
                 writer.println("typedef " + c.getName() + " *" + c.getName().substring(2));
             }
 
-            // Loop through classes and print data layout for each one
-            for (Node cl: classes) {
+            // Loop through classes and print data layout and vTable for each one
+            for (int idx = 0; idx < classes.size(); idx++) {
+                Node cl = classes.get(idx);
                 writer.println("struct " + NodeUtil.dfs(cl, "ClassName").getString(0) + "{");
                 writer.println(NodeUtil.dfs(cl, "VTableName") + " *__vptr;");
 
@@ -47,26 +48,51 @@ public class HeaderFileMaker {
                 }
                 writer.print(");\n");
 
+                // Method Declarations
+                List<Node> methods = NodeUtil.dfsAll(clDataLayout, "DLMethodDeclaration");
+                for (Node method: methods) {
+                    writer.print("static " + NodeUtil.dfs(method, "ReturnType").getString(0) + " " + method.get(1) + "(");
+                    for (int i = 2; i < method.size()-1; i++) {
+                        writer.print(method.getNode(i).getString(0) + ", ");
+                    }
+                    writer.print(method.getNode(method.size()-1).getString(0) + ");");
+                    writer.println();
+                }
+
+                // Class object declaration (?) Idk if we need this
+                writer.println("static Class __class();");
+
+                // VTable declaration
+                writer.println("static " + vTableNames.get(idx) + " __vtable;");
+
+                writer.println("}");
+
+                //Prints VTable Method Declarations
+                Node vTable = NodeUtil.dfs(cl, "VTable");
+                writer.println("struct " + vTableNames.get(idx) + " {");
+                writer.println("Class __isa");
+                List <Node> vTableMethods = NodeUtil.dfsAll(vTable, "VTableMethodDeclaration");
+                for (Node method: vTableMethods) {
+                    writer.print(NodeUtil.dfs(method, "ReturnType").getString(0) + " (*" + method.get(1) + ")(");
+                    for (int i = 2; i < method.size()-1; i++) {
+                        writer.print(method.getNode(i).getString(0) + ", ");
+                    }
+                    writer.print(method.getNode(method.size()-1).getString(0) + ");");
+                    writer.println();
+                }
+
+                writer.println(vTableNames.get(idx) + "() :");
+                writer.println("__isa(" + classNames.get(idx) + "::__class()");
+
+                for(int m = 0; m < vTableMethods.size(); m++) {
+                    Node method = vTableMethods.get(0);
+                    writer.print(method.get(1) + "(&" + classNames.get(idx) + "::" + method.get(1) + ")");
+                    if (m < vTableMethods.size()-1) { writer.print(","); }
+                    else { writer.print("{ }"); }
+                }
+                writer.println("} ;");
             }
-
-
-            /* #include statements
-            namespace stuff
-            struct declarations
-            typedefs
-            Data Layout:
-                VTable pointer, field declaration
-                constructor
-                method declarations (all begin with static)
-                static methods
-                VTable initialization
-            VTable:
-                Class __isa
-                method declarations ReturnType(name*)(Parameters)
-                VTable () :
-                    methodName(&__ClassName::methodName) */
-
-
+            
             writer.close();
 
         } catch (FileNotFoundException e1) {

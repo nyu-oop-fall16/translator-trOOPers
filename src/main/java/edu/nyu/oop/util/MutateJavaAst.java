@@ -28,16 +28,51 @@ public class MutateJavaAst extends Visitor {
                     if (n.getNode(0).getNode(0).getString(0).equals("public")) {
                         n.getNode(0).getNode(0).set(0, "namespace");
                     }
-                }else{//if it's class declaration
-                    String classname=n.getString(1);
-                    Node para=n.getNode(5).getNode(0);
-                    if(para.getNode(4).getName().equals("FormalParameters")){
+                }else {//if it's class declaration
+                    String classname = n.getString(1);
+                    //pass "__this" as parameter
+                    Node methoddeclaration = n.getNode(5).getNode(0);
+                    if (methoddeclaration.getNode(4).getName().equals("FormalParameters")) {
 //                        System.out.println("formal paramters");
-                        if(para.getNode(4).isEmpty()) {
+                        if (methoddeclaration.getNode(4).isEmpty()) {
                             GNode newparameter = GNode.create("FormalParameters", classname, "__this");
-                            para.set(4, newparameter);
+                            methoddeclaration.set(4, newparameter);
                         }
                     }
+                    /////////////////////
+                    System.out.println("yayyyyyyyyyyyyyyyyyyyyy");
+
+                    GNode constructor = GNode.create("ConstructorDeclaration", "__" + classname, "__vptr", "&__vtable");
+
+                    GNode para1 = GNode.create("para1", "__rt::literal", "java.lang." + classname);
+                    GNode para2 = GNode.create("para2", "(Class)__Object::__class()");
+                    GNode newcla = GNode.create("__Class", para1, para2);
+                    GNode newclassdecla = GNode.create("Return", "new", "__Class",newcla);
+                    GNode classmethoddecla = GNode.create("GetClass", GNode.create("Modifier", "static"), GNode.create("ReturnType", "Class"), GNode.create("ReturnVariable", "k"), newclassdecla);
+//                    Block(
+//                    ReturnStatement(
+//                            PrimaryIdentifier(
+//                                    "fld"
+//                            )
+//                    )
+
+                    GNode returnblock=GNode.create("Block",classmethoddecla,GNode.create("ReturnStatement","k"));
+
+//                    GNode classmethod=GNode.create("ClassMethodDeclaration",GNode.create("Modifiers","static"),class_classmethodtype,class_declarators);
+                    GNode classmethod=GNode.create("ClassMethodDeclaration",returnblock);
+
+                    GNode typequalified=GNode.create("QualifiedIdentifier","__"+classname+"__VT");
+                    GNode classmethodtype=GNode.create("Type",typequalified,null);
+                    GNode declarator=GNode.create("Declarator","_vtable",null,GNode.create("PrimaryIdentifier"));
+                    GNode declarators=GNode.create("Declarators",declarator);
+                    GNode vtabledeclaration=GNode.create("VtableDeclaration",GNode.create("Modifiers"),classmethodtype,declarators);
+
+
+                    GNode classbody=GNode.create("ClassBody",constructor,methoddeclaration,classmethod,vtabledeclaration);
+                    n.set(5,classbody);
+
+
+
                 }
                 visit(n);
 

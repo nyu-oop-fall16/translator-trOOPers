@@ -5,3 +5,20 @@ public class Test000 {
         System.out.println("Hello.");
     }
 }
+
+//c++ code version
+//
+
+//main.cpp
+// #include <iostream>;
+//
+// using namespace inputs::test000;
+//
+// int main() {
+//      std::cout << "Hello." << std::endl;
+// }
+
+//output.cpp
+// struct test000{
+//
+// }

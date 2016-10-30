@@ -92,15 +92,12 @@ public class NodeUtil {
      * @param root a GNode to copy
      * @return duplicated GNode
      */
-    public static GNode deepCopyNode(GNode root)
-    {
+    public static GNode deepCopyNode(GNode root) {
         GNode top = GNode.create(root);
         top = GNode.ensureVariable(top);
-        for (int i = 0; i < top.size(); i++)
-        {
+        for (int i = 0; i < top.size(); i++) {
             Object child = top.get(i);
-            if (child instanceof GNode)
-            {
+            if (child instanceof GNode) {
                 GNode childNode = GNode.cast(child);
                 child = deepCopyNode(childNode);
             }

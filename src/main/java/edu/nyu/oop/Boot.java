@@ -137,7 +137,7 @@ public class Boot extends Tool {
 ////            CPlusPlusHeaderMaker.printCHeaderFile(cppHeader);
 //        }
 
-        if(runtime.test("phaseFour")){
+        if(runtime.test("phaseFour")) {
 //            MutateJavaAst m = new MutateJavaAst(g.get(0));
 //            MutateJavaAst m = new MutateJavaAst(g.get(0));
             GNode m = MutateJavaAst.mutate(g.get(0));
@@ -154,5 +154,7 @@ public class Boot extends Tool {
      *
      * @param args The command line arguments.
      */
-    public static void main(String[] args) {new Boot().run(args);}
+    public static void main(String[] args) {
+        new Boot().run(args);
+    }
 }

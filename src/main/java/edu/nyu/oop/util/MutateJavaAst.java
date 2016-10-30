@@ -84,7 +84,8 @@ public class MutateJavaAst extends Visitor {
                     System.out.println("HIIIIIIIIIIIIIIIII Main");
                     GNode modifiers = GNode.create("Modifiers");
                     n.set(0, modifiers);
-                    GNode mainType = GNode.create("IntType");
+//                    GNode mainType = GNode.create("IntType");
+                    GNode mainType = methodTypes("int");
                     n.set(2, mainType);
                     GNode formalParameters = GNode.create("FormalParameters");
                     n.set(4, formalParameters);
@@ -148,5 +149,11 @@ public class MutateJavaAst extends Visitor {
         GNode printLine = GNode.create("Argument",o);
         GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,printLine,selectionExpressionEnd);
         return callExpression;
+    }
+
+    private static GNode methodTypes(Object o){
+        GNode qualifiedIdentifier = GNode.create("QualifiedIdentifier", o);
+        GNode type = GNode.create("Type", qualifiedIdentifier);
+        return type;
     }
 }

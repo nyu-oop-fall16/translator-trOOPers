@@ -1,21 +1,21 @@
 package edu.nyu.oop;
 
-import edu.nyu.oop.util.JavaFiveImportParser;
-import edu.nyu.oop.util.MutateJavaAst;
-import edu.nyu.oop.util.NodeUtil;
-import edu.nyu.oop.util.XtcProps;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.List;
+
+import java.util.ArrayList; // we imported
+
+import edu.nyu.oop.util.*;
 import org.slf4j.Logger;
-import xtc.lang.JavaPrinter;
-import xtc.parser.ParseException;
+
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.util.Tool;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
+import xtc.lang.JavaPrinter;
+import xtc.parser.ParseException;
 
 /**
  * This is the entry point to your program. It configures the user interface, defining
@@ -50,7 +50,7 @@ public class Boot extends Tool {
         bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
         bool("generateHeaderOutput", "generateHeaderOutput", false, "Prints definitions into the output.h file.").
         bool("phaseFour", "phaseFour", false, "Mutates the Java Ast files to correspond with C++ files.").
-        bool("phase5", "phase5", false, "Load output file first");
+        bool("phaseFive", "phaseFive", false, "Generates the output.cpp files and main.cpp files using mutated Asts.");
     }
 
     @Override
@@ -79,6 +79,7 @@ public class Boot extends Tool {
     }
 
     private List<GNode> listGNodes = new ArrayList<GNode>();// me add
+    private GNode mutatedAst;
     @Override
     public void process(Node n) {
         if (runtime.test("printJavaAst")) {
@@ -99,12 +100,8 @@ public class Boot extends Tool {
             runtime.console().flush();
         }
 
-//        // create the list
-//        List<GNode> g = new ArrayList<GNode>();
         // Generates list of GNodes with its dependencies
         if (runtime.test("generateListGNodes")) {
-            // create the list
-//            List<GNode> g = new ArrayList<GNode>();
             // add the GNode of the java class passed in
             g.add((GNode) n);
 
@@ -131,35 +128,18 @@ public class Boot extends Tool {
         }
         // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
 
-//        GNode cppHeader = g.get(1); // phase 2 creates
-//        if(runtime.test("generateHeaderOutput")){
-//            // prints to output.h
-////            CPlusPlusHeaderMaker.printCHeaderFile(cppHeader);
-//        }
 
         if(runtime.test("phaseFour")) {
-//            MutateJavaAst m = new MutateJavaAst(g.get(0));
-//            MutateJavaAst m = new MutateJavaAst(g.get(0));
-            GNode m = MutateJavaAst.mutate(g.get(0));
-//            runtime.console().p("Mutations: " + m).pln().flush();
-            runtime.console().p("Mutate: ").format(m).pln().flush();
-
-//            runtime.console().p("Mutate: " + m).pln().flush();
+            GNode nodeCopy = NodeUtil.deepCopyNode(g.get(0));
+            mutatedAst = MutateJavaAst.mutate(nodeCopy);
+//            runtime.console().p("Mutations: " + mutatedAst).pln().flush();
+            runtime.console().p("Mutate: ").format(mutatedAst).pln().flush();
         }
 
-        //find the parent path
-        if (runtime.test("phase5")) {
-            try{
-//                File newf=this.locate(XtcProps.get("output.location")+"/output.cpp");
-                File newf=new File(XtcProps.get("output.location")+"/output.cpp");
-//                runtime.console().p(newf.getAbsolutePath()).pln().flush();
-
-            }catch(Exception e){
-                runtime.console().p(e.toString()).pln().flush();
-            }
-
-
+        if(runtime.test("phaseFive")){
+            CPPMaker.printToCpp(mutatedAst);
         }
+
     }
 
     /**

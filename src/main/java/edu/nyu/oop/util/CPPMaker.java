@@ -13,15 +13,18 @@ public class CPPMaker {
 
 
     // given an ast, generate the main.cpp and output.cpp files
-    public static void printToCpp(GNode n){
+    public static void printToOutputCpp(GNode n) {
+        // Create a printwriter for output.cpp file
         File output = loadOutputCpp();
-        try{
+        try {
             PrintWriter outputWriter = new PrintWriter(output);
-        }
-        catch(FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             logger.warn("Invalid path for file " + output);
         }
+    }
 
+    public static void printToMainCpp(GNode n){
+        // create a printwriter for main.cpp file
         File main = loadMainCpp();
         try{
             PrintWriter outputWriter = new PrintWriter(main);
@@ -30,16 +33,16 @@ public class CPPMaker {
             logger.warn("Invalid path for file " + main);
         }
 
-        System.out.println(output);
-        System.out.println(main);
     }
 
 
+    // returns the output.cpp file
     private static File loadOutputCpp() {
         File outputCPP = new File(XtcProps.get("output.location") + "/output.cpp");
         return outputCPP;
     }
 
+    // returns the main.cpp file
     private static File loadMainCpp() {
         File mainCPP = new File(XtcProps.get("output.location") + "/main.cpp");
         return mainCPP;

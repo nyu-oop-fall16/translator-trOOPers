@@ -1,21 +1,18 @@
 package edu.nyu.oop;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.List;
-
-import java.util.ArrayList; // we imported
-
 import edu.nyu.oop.util.*;
 import org.slf4j.Logger;
-
+import xtc.lang.JavaPrinter;
+import xtc.parser.ParseException;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.util.Tool;
-import xtc.lang.JavaPrinter;
-import xtc.parser.ParseException;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is the entry point to your program. It configures the user interface, defining
@@ -136,8 +133,8 @@ public class Boot extends Tool {
             runtime.console().p("Mutate: ").format(mutatedAst).pln().flush();
         }
 
-        if(runtime.test("phaseFive")){
-            CPPMaker.printToCpp(mutatedAst);
+        if(runtime.test("phaseFive")) {
+            CPPMaker.printToMainCpp(mutatedAst);
         }
 
     }

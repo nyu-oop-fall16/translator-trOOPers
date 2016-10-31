@@ -118,7 +118,7 @@ public class MutateJavaAst extends Visitor {
                 }
             }
 
-        }.dispatch(n);
+        } .dispatch(n);
 
         return n;
     }
@@ -134,7 +134,7 @@ public class MutateJavaAst extends Visitor {
     }
 
     // method to change the types
-    private static GNode methodTypes(Object o){
+    private static GNode methodTypes(Object o) {
         GNode qualifiedIdentifier = GNode.create("QualifiedIdentifier", o);
         GNode type = GNode.create("Type", qualifiedIdentifier);
         return type;

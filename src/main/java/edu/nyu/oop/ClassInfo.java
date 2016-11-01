@@ -13,51 +13,53 @@ import java.util.HashMap;
     3) the types of the parameters
     4) the field types and names
     5) a list of the class' methods
-
 */
 
 public class ClassInfo {
     // private Node parent = whatever this class extends ("Object" if nothing else)
-    private GNode name;
-    private Node modifier;
-    private Node constructorParams;
-    private List<Node> fields = new ArrayList<Node>();
-    private HashMap<String,MethodInfo> methods = new HashMap<String,MethodInfo>();
+    private String name;
+    //private Node modifier;
+    private Node constructorParams = GNode.create("ConstructorParameters");
+    private List<String> fields = new ArrayList<String>();
+    private ArrayList<MethodInfo> methods = new ArrayList<MethodInfo>();
 
     //Set and get methods for the information held within an headerClass object.
 
     public void setName(String n) {
-        name = GNode.create(n);
+        name = n;
     }
-    public GNode getName() {
+    public String getName() {
         return name;
     }
 
-    public void setModifier(Node modifier) {
+/*  public void setModifier(Node modifier) {
         this.modifier = modifier;
     }
     public Node getModifier() {
         return modifier;
     }
-
-    public void addFields(Node name) {
+*/
+    public void addFields(String name) {
         fields.add(name);
     }
 
-    public List<Node> getFields() {
+    public List<String> getFields() {
         return fields;
     }
 
     public void addMethod(MethodInfo method) {
-        methods.put(method.getName().getString(0),method);
+        methods.add(method);
     }
-    public HashMap<String,MethodInfo> getMethods() {
+    public ArrayList<MethodInfo> getMethods() {
         return methods;
     }
 
 
-    public void setConstructorParams(Node c) {
-        this.constructorParams = c;
+    public void addConstructorParams(String r, String n) {
+        Node param = GNode.create("ConstructorParameter");
+        param.add(r);
+        param.add(n);
+        constructorParams.add(param);
     }
 
     public Node getConstructorParams() {

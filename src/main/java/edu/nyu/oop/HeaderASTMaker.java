@@ -12,22 +12,20 @@ public class HeaderASTMaker {
     // BuildInfo holds a list of classes that were defined in the Java file.
     private List<Node> packages = new ArrayList<Node>();
     public HashMap<String,ClassInfo> classes = new HashMap<String,ClassInfo>();
-
-    // Include Import Statements!
+    public ArrayList<Object> childrenArray = new ArrayList<Object>();
+    public String fileName;
 
     public GNode makeAST() {
         GNode completeAST = GNode.create("AST");
-        GNode headerDec = GNode.create("HeaderDeclaration");
-        GNode namespaceDec = GNode.create("NamespaceDeclaration");
-        // package imports?
-        headerDec.add(namespaceDec);
+        GNode head = createHead();
+        completeAST.add(head);
 
         for (String s: classes.keySet()) {
             ClassInfo c = classes.get(s);
 
             GNode thisClass = GNode.create("ClassDeclaration");
             GNode className = GNode.create("ClassName");
-            className.add("__"+ c.getName().getString(0));
+            className.add("__" + s);
             thisClass.add(className);
 
             GNode dataLayout = createDataLayout(c);
@@ -35,9 +33,8 @@ public class HeaderASTMaker {
 
             thisClass.add(dataLayout);
             thisClass.add(vTable);
-            headerDec.add(thisClass);
+            completeAST.add(thisClass);
         }
-        completeAST.add(headerDec);
         return completeAST;
     }
 
@@ -45,38 +42,63 @@ public class HeaderASTMaker {
         packages.add(n);
     }
 
+    //Creates the Data Layout for a particular ClassInfo object c.
     private GNode createDataLayout(ClassInfo c) {
-        GNode dataLayout = GNode.create("Data Layout");
+        GNode dataLayout = GNode.create("DataLayout");
         GNode fields = GNode.create("Fields");
 
+        //Creates the vptr and the vtable declarations in the data layout
+        GNode fieldVPTR = GNode.create("FieldDeclaration");
+        fieldVPTR.add("__" + c.getName() + "_VT*");
+        fieldVPTR.add("__vptr");
+        GNode fieldVTable = GNode.create("FieldDeclaration");
+        fieldVTable.add("static");
+        fieldVTable.add("__" + c.getName() + "_VT");
+        fieldVTable.add("__vtable");
+
+        fields.add(fieldVPTR);
+        fields.add(fieldVTable);
+
         // Make the field declarations
-        for (Node f: c.getFields()) {
-            fields.add(f);
+        for (String f: c.getFields()) {
+            GNode fieldDec = GNode.create("FieldDeclaration");
+            fieldDec.add(f);
+            fields.add(fieldDec);
         }
 
         dataLayout.add(fields);
 
         // Make the constructor
-        GNode constructorDec = GNode.create("Constructor Declaration");
-        constructorDec.add(c.getName());
+        GNode constructorDec = GNode.create("ConstructorDeclaration");
+        GNode constructorName = GNode.create("ConstructorName");
+        constructorName.add("__" + c.getName());
+        constructorDec.add(constructorName);
         constructorDec.add(c.getConstructorParams());
         dataLayout.add(constructorDec);
 
         // Add Method Nodes to Data Layout
-        GNode methodDecs = GNode.create("Method Declarations");
-        for (String str: c.getMethods().keySet()) {
-            GNode newMethod = GNode.create("D.L. Method Declaration");
-            MethodInfo method = c.getMethods().get(str);
-
-            newMethod.add(method.getReturnType());
-            newMethod.add(method.getName().getString(0));
+        GNode methodDecs = GNode.create("DLMethodDeclarations");
+        for (MethodInfo method: c.getMethods()) {
+            GNode newMethod = GNode.create("DLMethodDeclaration");
 
             GNode mod = GNode.create("Modifier");
             mod.add("static");
             newMethod.add(mod);
 
-            for (Node n: method.getParameter()) {
-                newMethod.add(n);
+            newMethod.add(method.getReturnType());
+
+            GNode methodName = GNode.create("MethodName");
+            methodName.add(method.getName());
+            newMethod.add(methodName);
+
+            GNode parameters = GNode.create("MethodParameters");
+            parameters.add(c.getName());
+
+
+
+
+            for (String parameter: method.getParameter()) {
+                newMethod.add(parameter);
             }
 
             methodDecs.add(newMethod);
@@ -85,28 +107,52 @@ public class HeaderASTMaker {
         return dataLayout;
     }
 
+    //Creates the VTable for a particular ClassInfo object c.
     private GNode createVTable(ClassInfo c) {
         GNode vTable = GNode.create("VTable");
-        for (String str: c.getMethods().keySet()) {
-            GNode newMethod = GNode.create("V.T. Method Declaration");
-            MethodInfo method = c.getMethods().get(str);
+        for (MethodInfo method: c.getMethods()) {
+            GNode newMethod = GNode.create("VTMethodDeclaration");
 
             newMethod.add(method.getReturnType());
-            newMethod.add(method.getName().getString(0));
+            newMethod.add(method.getName());
 
             GNode mod = GNode.create("Modifier");
             mod.add("static");
             newMethod.add(mod);
 
-            for (Node n: method.getParameter()) {
-                newMethod.add(n);
+            for (String parameter: method.getParameter()) {
+                newMethod.add(parameter);
             }
 
             vTable.add(newMethod);
         }
         return vTable;
-
-
     }
 
+    //Creates the head of the file (changing the namespace) and declaring structs for the data layouts and vtables.
+    //This method will be changed for part 2 when we have to worry about dependancies.
+    private GNode createHead() {
+        GNode head = GNode.create("Head");
+        GNode nameSpace1 = GNode.create("NameSpaceDeclaration");
+        GNode nameSpace2 = GNode.create("NameSpaceDeclaration");
+
+        nameSpace1.add("inputs");
+        nameSpace2.add(fileName);
+
+        head.add(nameSpace1);
+        nameSpace1.add(nameSpace2);
+
+        for(String s: classes.keySet()) {
+            head.add("struct __" + s + ";");
+            head.add("struct __" + s + "_VT");
+            head.add("typedef __" + s + "* " + s);
+        }
+        /*GNode children = GNode.create("children");
+        for(Object o: childrenArray) {
+            children.add(o);
+        }
+        head.add(children);*/
+
+        return head;
+    }
 }

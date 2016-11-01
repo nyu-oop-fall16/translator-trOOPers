@@ -9,9 +9,9 @@ import java.util.List;
 public class MethodInfo {
    // private boolean ifStatic;
     private Node returnType;
-    private GNode name;
-    private List<Node> mParameters = new ArrayList<Node>();
-    private List<Node> modifiers = new ArrayList<Node>();
+    private String name;
+    private ArrayList<String> mParameters = new ArrayList<String>();
+    private ArrayList<String> modifiers = new ArrayList<String>();
 
     //Constructor
 
@@ -25,16 +25,17 @@ public class MethodInfo {
         return ifStatic;
     } */
 
-    public void addModifier(Node modifier) {
+    public void addModifier(String modifier) {
         modifiers.add(modifier);
     }
 
-    public List<Node> getModifiers() {
+    public List<String> getModifiers() {
         return modifiers;
     }
 
-    public void setReturnType(Node returnType) {
-        this.returnType = returnType;
+    public void setReturnType(String rType) {
+        returnType = GNode.create("ReturnType");
+        returnType.add(rType);
     }
 
     public Node getReturnType() {
@@ -42,16 +43,16 @@ public class MethodInfo {
     }
 
     public void setName(String n) {
-        name = GNode.create(n);
+        name = n;
     }
-    public GNode getName() {
+    public String getName() {
         return name;
     }
 
-    public void addParameter(Node mParameter) {
+    public void addParameter(String mParameter) {
         this.mParameters.add(mParameter);
     }
-    public List<Node> getParameter() {
+    public List<String> getParameter() {
         return mParameters;
     }
 

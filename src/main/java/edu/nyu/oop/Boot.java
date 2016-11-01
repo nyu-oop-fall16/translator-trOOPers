@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 
+import java.util.ArrayList;
+
 import edu.nyu.oop.util.JavaFiveImportParser;
 import edu.nyu.oop.util.NodeUtil;
 import edu.nyu.oop.util.XtcProps;
@@ -15,6 +17,7 @@ import xtc.tree.Node;
 import xtc.util.Tool;
 import xtc.lang.JavaPrinter;
 import xtc.parser.ParseException;
+
 
 /**
  * This is the entry point to your program. It configures the user interface, defining
@@ -43,7 +46,9 @@ public class Boot extends Tool {
         runtime.
         bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
         bool("printJavaCode", "printJavaCode", false, "Print Java code.").
-        bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.");
+        bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
+        bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
+        bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.");
     }
 
     @Override
@@ -89,7 +94,47 @@ public class Boot extends Tool {
                 new JavaPrinter(runtime.console()).dispatch(node);
             }
             runtime.console().flush();
+            //runtime.console().p("MEEEEE" + nodes.get(0).getName()).flush();
         }
+
+        // Generates list of GNodes with its dependencies
+        if (runtime.test("generateListGNodes")){
+            // create the list
+            List<GNode> g = new ArrayList<GNode>();
+            // add the GNode of the java class passed in
+            g.add((GNode) n);
+
+            // should be a list of all dependencies and their dependencies recursively gotten
+            List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
+
+            // add the dependencies to the list
+            for(int i = 0; i < nodes.size(); i++) {
+                // makes sure that a GNode isn't added to list multiple times during cyclic imports
+                if(!g.contains(nodes.get(i))) {
+                    g.add(nodes.get(i));
+                }
+            }
+            // checks the nodes in list
+//            runtime.console().p("Size of GNodes List: " + g.size()).pln().flush();
+//            for(int k = 0; k < g.size(); k++){
+//                runtime.console().p("List of GNodes, GNode at index " + k + ": " + g.get(k)).pln().flush();
+//                runtime.console().pln().flush();
+//            }
+        }
+
+        if (runtime.test("printHeaderAst")) {
+            JavaAstVisitor v = new JavaAstVisitor();
+            HeaderASTMaker build;
+            build = v.getBuildInfo(n);
+
+            //Create GNode that will be the root node of the AST.
+            GNode rootNode;
+            rootNode = build.makeAST();
+            runtime.console().format(rootNode).pln().flush();
+
+
+        }
+
 
         // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
     }

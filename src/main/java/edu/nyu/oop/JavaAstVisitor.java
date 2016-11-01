@@ -7,7 +7,7 @@ import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-import java.util.List;
+import java.util.Iterator;
 import java.util.ArrayList;
 
 public class JavaAstVisitor extends Visitor {
@@ -21,22 +21,47 @@ public class JavaAstVisitor extends Visitor {
     public String currentClass;
     public String currentMethod;
 
+    //visitPackageDeclaration will visit each package declaration node and get the file name from the test being used. This is a
+    //placeholder and will change when we incorporate dependencies
     public void visitPackageDeclaration(GNode n) {
         information.addPackage(n);
+        information.fileName = n.getNode(1).getString(1);
     }
 
     public void visitClassDeclaration(GNode n) {
-        if (!n.hasName("main")) {
-            currentClass = n.getName();
+        currentClass = n.getString(1);
+        if (!currentClass.equals("T" + information.fileName.substring(1))) {
+
+            //Iterator used in order to view a list of all of the direct children of node n.
+            /*Iterator<Object> i = n.iterator();
+            while(i.hasNext()) {
+                information.childrenArray.add(i.next());
+            }*/
+
             ClassInfo thisClass = new ClassInfo();
             thisClass.setName(currentClass);
-            thisClass.setModifier(NodeUtil.dfs(n, "Modifiers"));
-            thisClass.addFields(NodeUtil.dfs(n, "FieldDeclaration"));
+
+            Node fieldsCheck = NodeUtil.dfs(n, "FieldDeclaration");
+            if (fieldsCheck != null) {
+                for (Node field : NodeUtil.dfsAll(n, "FieldDeclaration")) {
+                    Node type = NodeUtil.dfs(field, "Type");
+                    Node typeIdentifier = NodeUtil.dfs(type, "QuantifiedIdentifier");
+                    thisClass.addFields(typeIdentifier.getName());
+                }
+            }
 
             Node constructorDec = NodeUtil.dfs(n, "ConstructorDeclaration");
-            thisClass.setConstructorParams(NodeUtil.dfs(constructorDec, "FormalParameters"));
+            if (constructorDec != null) {
+                Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
+                for(Node formalParam: NodeUtil.dfsAll(formalParams, "FormalParameter")) {
+                    String rtype = NodeUtil.dfs(formalParam, "Type").getNode(1).getString(0);
+                    String name = formalParam.getString(3);
+                    thisClass.addConstructorParams(rtype,name);
+                }
 
-            information.classes.put(currentClass,thisClass);
+            }
+
+            information.classes.put(currentClass, thisClass);
 
             visit(n);
         }
@@ -44,27 +69,39 @@ public class JavaAstVisitor extends Visitor {
     }
 
     public void visitMethodDeclaration(GNode n) {
-        currentMethod = n.getName();
+
+        //For some reason this exclusionary bit of code does not work. It is building a dataLayoud and VTale for the main class anyways.
+        currentMethod = n.getString(3);
+
         MethodInfo thisMethod = new MethodInfo();
         thisMethod.setName(currentMethod);
 
         // Find modifiers and add them to the ClassInfo Object
-        for (Node m : NodeUtil.dfsAll(n, "Modifiers")) {
-            thisMethod.addModifier(m);
+
+        Node modifiers = NodeUtil.dfs(n, "Modifiers");
+        for (Node m : NodeUtil.dfsAll(modifiers, "Modifier")) {
+            thisMethod.addModifier(m.getString(0));
         }
 
         // Find return type of method and add it to the MethodInfo object (if void, then add VoidType)
         Node typeTest = NodeUtil.dfs(n, "Type");
         if (typeTest.equals(null)) {
-            thisMethod.setReturnType(NodeUtil.dfs(n, "VoidType"));
+            thisMethod.setReturnType("void");
         } else {
-            thisMethod.setReturnType(NodeUtil.dfs(n, "Type"));
+            Node identifier = NodeUtil.dfs(typeTest, "QualifiedIdentifier");
+            thisMethod.setReturnType(identifier.getString(0));
         }
 
         // Set parameters of the method
-        for (Node p : NodeUtil.dfsAll(n, "FormalParameters")) {
-            thisMethod.addParameter(p);
-            // add itself as a parameter
+        Node parameter = NodeUtil.dfs(n, "FormalParameters");
+        for (Node p : NodeUtil.dfsAll(parameter, "FormalParameter")) {
+            Node type = NodeUtil.dfs(p, "Type");
+            if (type.equals(null)) {
+                thisMethod.addParameter("void");
+            } else {
+                Node identifier = NodeUtil.dfs(type, "QualifiedIdentifier");
+                thisMethod.addParameter(identifier.getString(0));
+            }
         }
 
         information.classes.get(currentClass).addMethod(thisMethod);
@@ -74,6 +111,14 @@ public class JavaAstVisitor extends Visitor {
     public void visit(Node n) {
         for (Object o : n) if (o instanceof Node) dispatch((Node) o);
     }
-    public HeaderASTMaker getASTInfo() { return information; }
+
+    public HeaderASTMaker getBuildInfo(Node n) {
+        super.dispatch(n);
+        return information;
+    }
+
+    public HeaderASTMaker getASTInfo() {
+        return information;
+    }
 
 }

@@ -76,13 +76,14 @@ public class HeaderFileMaker {
                 writer.println("}");
 
                 //Prints VTable Method Declarations
-                Node vTable = NodeUtil.dfs(cl, "VTable");
+                Node vTableDec = NodeUtil.dfs(cl, "VTDeclaration");
                 String vTableName = className + "_VT";
 
                 writer.println("struct " + vTableName + " {");
 
-                List <Node> vTableMethods = NodeUtil.dfsAll(vTable, "VTableMethodDeclaration");
-                for (Node method: vTableMethods) {
+                Node vtMethodDecs = NodeUtil.dfs(vTableDec, "VTMethodDeclarations");
+                List <Node> vTableMethodDecs = NodeUtil.dfsAll(vtMethodDecs, "VMethodDeclaration");
+                for (Node method: vTableMethodDecs) {
                     writer.print(method.getNode(0).getString(0) + " (*" + method.getNode(1).getString(0) + ")("); // prints returntype and pointer with name
                     for (int i = 2; i < method.getNode(2).size(); i++) {
                         writer.print(method.getNode(i).getString(0));
@@ -95,11 +96,36 @@ public class HeaderFileMaker {
                 writer.println(vTableName + "() :");
 
                 // DONE THROUGH HERE
+                Node vTable = NodeUtil.dfs(vTableDec, "VTable");
 
-                for(Node method: vTableMethods) {
-                    writer.print(method.getNode(0).getString(0) + "(&" + className + "::" + method.get(1) + ")");
-                    if (m < vTableMethods.size()-1) { writer.print(","); }
-                    else { writer.print("{ }"); }
+                List<Node> vTableMethods = NodeUtil.dfsAll(vTable, "VTMethod");
+
+                for(int i = 0; i < vTableMethods.size(); i++) {
+                    Node method = vTableMethods.get(i);
+                    String methodName = method.getNode(0).getString(0);
+                    writer.print(methodName +"("); // print method name
+
+                    String superClassName = NodeUtil.dfs(method, "ImplementationClass").getString(0);
+                    if (!superClassName.equals(className)) { // for inherited methods
+                        writer.print("(" + NodeUtil.dfs(method, "ReturnType") + "(*)("); // print casting information
+                        Node methodParams = NodeUtil.dfs(method, "Parameters");
+                        for (int i = 0; i < methodParams.size(); i++) {
+                            if (i < methodParams.size()-1) { writer.print(methodParams.getString(i) + ", "); }
+                            else { writer.print(methodParams.getString(i) + "))"); }
+                        }
+                        writer.print(" &__" + superClassName);
+                    }
+                    else { writer.print(" &__" + className); }
+
+                    writer.print(":: " + methodName + ")");
+
+                    if (i < vTableMethods.size() - 1) {
+                        writer.print(",\n");
+                    }
+
+                    else {
+                        writer.print("{\n}\n");
+                    }
                 }
                 writer.println("} ;");
             }

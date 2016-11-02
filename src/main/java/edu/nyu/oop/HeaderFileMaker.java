@@ -148,32 +148,35 @@ public class HeaderFileMaker {
     private void printVTable(Node vTable, String className) {
         List<Node> vTableMethods = NodeUtil.dfsAll(vTable, "VTMethod");
 
-        for(int i = 0; i < vTableMethods.size(); i++) {
-            Node method = vTableMethods.get(i);
-            String methodName = method.getNode(0).getString(0);
-            writer.print(methodName +"("); // print method name
+        for (int i = 0; i < vTableMethods.size(); i++) {
+            Node method = vTableMethods.get(i); // each one is: MethodName - Parameters - Implementation Class - ReturnType
+            String methodName = NodeUtil.dfs(method, "MethodName").getString(0);
+            writer.print(methodName + "("); // print method name
 
             String superClassName = NodeUtil.dfs(method, "ImplementationClass").getString(0);
             if (!superClassName.equals(className)) { // for inherited methods
                 writer.print("(" + NodeUtil.dfs(method, "ReturnType") + "(*)("); // print casting information
                 Node methodParams = NodeUtil.dfs(method, "Parameters");
                 for (int j = 0; j < methodParams.size(); j++) {
-                    if (j < methodParams.size()-1) { writer.print(methodParams.getString(j) + ", "); }
-                    else { writer.print(methodParams.getString(j) + "))"); }
+                    if (j < methodParams.size() - 1) {
+                        writer.print(methodParams.getString(j) + ", ");
+                    } else {
+                        writer.print(methodParams.getString(j) + "))");
+                    }
                 }
                 writer.print(" &__" + superClassName);
+            } else {
+                writer.print(" &__" + className);
             }
-            else { writer.print(" &__" + className); }
 
             writer.print(":: " + methodName + ")");
 
             if (i < vTableMethods.size() - 1) {
                 writer.print(",\n");
-            }
-
-            else {
+            } else {
                 writer.print("{\n}\n");
             }
-    }
 
+        }
+    }
 }

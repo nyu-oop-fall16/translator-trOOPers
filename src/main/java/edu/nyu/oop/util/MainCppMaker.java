@@ -37,22 +37,71 @@ public class MainCppMaker extends Visitor{
     // indices relative to MethodDeclaration of main method
 
     // visit qualified identifier nodes - for testing purposes
-    public void visitType(GNode n){
-        String returnType = ""; // holds return type of main
-        if(n.getNode(0).getString(0).equals("int")){
-            returnType = n.getNode(0).getString(0);
-        }
-        // add to list of strings to be printed
-        mainPrintString(2,returnType); // 2 - Type is the 3rd child of MethodDeclaration
-        visit(n);
-    }
+//    public void visitType(GNode n){
+//        String returnType = ""; // holds return type of main
+//        if(n.getNode(0).getString(0).equals("int")){
+//            returnType = n.getNode(0).getString(0);
+//        }
+//        // add to list of strings to be printed
+//        mainPrintString(2,returnType); // 2 - Type is the 3rd child of MethodDeclaration
+//        visit(n);
+//    }
 
     // visit expression statement - for testing purposes
     public void visitMethodDeclaration(GNode n){
         String main = n.getString(3); // get "main" (name of the method)
-        mainPrintString(3,main); // 3 - method name is the 4th child of MethodDeclaration
+        if(main.equals("main")) {
+            mainPrintString(2, "int "+main); // 3 - method name is the 4th child of MethodDeclaration
+            buildmainfunction(n);
+        }
         visit(n);
     }
+
+    public void buildmainfunction(GNode n){
+        String method="";
+        GNode filedDeclaration=GNode.cast(n.getNode(7).getNode(0));
+        method+=buildFieldDeclaration(filedDeclaration);
+        GNode callexpression=GNode.cast(n.getNode(7).getNode(1).getNode(0));
+
+        for(int i=0;i<callexpression.size();i++){
+            Node c=callexpression.getNode(i);
+            if(c.getName()=="SelectionExpression"){
+                if(c.getString(1)=="cout"){
+                    method+=c.getNode(0).getString(0)+"::"+c.getString(1)+"<<";
+                }else if(c.getString(1)=="endl"){
+                    method+="<<"+c.getNode(0).getString(0)+"::"+c.getString(1);
+                }
+            }else if(c.getName().equals("Arguments")){
+                GNode c1=GNode.cast(c.getNode(0));
+                if(c1.getName().equals("StringLiteral")){
+                    method+=c1.getString(0);
+                }else if(c1.getName().equals("CallExpression")){
+                    int c1size=c1.getNode(3).size();
+                    String parameter="";
+                    if(c1size==0){
+                        parameter="";
+                    }
+                    method+=c1.getNode(0).getString(0)+"."+c1.getString(2)+"("+parameter+")";
+                }
+            }
+
+        }
+        method="{"+method+"\n}";
+        mainPrintString(3,method);
+
+        visit(n);
+    }
+
+
+    public String buildFieldDeclaration(GNode n){
+        String s="\n";
+        s+=n.getNode(1).getNode(0).getString(0)+" ";
+        s+=n.getNode(2).getNode(0).getString(0)+" = ";
+        s+="new "+n.getNode(2).getNode(0).getNode(2).getNode(2).getString(0);
+        s+="();\n";
+        return s;
+    }
+
 
     // prints implementation to output.cpp
     public void printToMainCpp(ToBePrinted printThis) {
@@ -65,6 +114,7 @@ public class MainCppMaker extends Visitor{
 
         // print to output file
         for(int i = 0; i < printThis.getList().size(); i++){
+            System.out.println(i+"elemnt of the list is "+printThis.getList().get(i).getOutputString());
             mainWriter.print(printThis.getList().get(i).getOutputString() + " ");
         }
 

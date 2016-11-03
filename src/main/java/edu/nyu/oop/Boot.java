@@ -1,20 +1,18 @@
 package edu.nyu.oop;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.List;
-
-import java.util.ArrayList; // we imported
-
 import edu.nyu.oop.util.*;
 import org.slf4j.Logger;
-
+import xtc.lang.JavaPrinter;
+import xtc.parser.ParseException;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.util.Tool;
-import xtc.lang.JavaPrinter;
-import xtc.parser.ParseException;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is the entry point to your program. It configures the user interface, defining
@@ -129,21 +127,26 @@ public class Boot extends Tool {
 
 
         if(runtime.test("phaseFour")) {
+            //I combine phasefour and five for a moment to test.
+            //And if command phase four and five respectively, the file doesn't mutatedAst and the node it generates
+            //-Prudence
+
             // make a copy of the Java Ast of the test class and mutate it to C++ Ast
-            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
+//            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
+            GNode nodeCopy = NodeUtil.deepCopyNode((GNode)n);
             mutatedAst = MutateJavaAst.mutate(nodeCopy);
 
             // check the Ast in console
             runtime.console().p("Mutate: ").format(mutatedAst).pln().flush();
-        }
-
-        // passes the mutated Ast to be used to create the implementation files
-        if(runtime.test("phaseFive")){
+//        }
+//
+//        // passes the mutated Ast to be used to create the implementation files
+//        if(runtime.test("phaseFive")){
             // Traverse mutated Ast and print to output.cpp
-            OutputCppMaker outputMaker = new OutputCppMaker();
-            // get the list of strings to be printed after traversing ast
-            OutputCppMaker.ToBePrinted outputPrint = outputMaker.getOutputToBePrinted(mutatedAst);
-            outputMaker.printToOutputCpp(outputPrint); // prints to output.cpp file
+//            OutputCppMaker outputMaker = new OutputCppMaker();
+//            // get the list of strings to be printed after traversing ast
+//            OutputCppMaker.ToBePrinted outputPrint = outputMaker.getOutputToBePrinted(mutatedAst);
+//            outputMaker.printToOutputCpp(outputPrint); // prints to output.cpp file
 
             // Traverse mutated Ast and print to main.cpp
             MainCppMaker mainMaker = new MainCppMaker();

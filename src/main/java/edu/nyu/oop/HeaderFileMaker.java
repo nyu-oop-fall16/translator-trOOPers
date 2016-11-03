@@ -10,12 +10,12 @@ import java.util.List;
 
 // this class takes in a node representing a CPP AST and translates it into a CPP Header File
 public class HeaderFileMaker {
-    File header;
-    PrintWriter writer;
+    static File header;
+    static PrintWriter writer;
 
-    public void makeHeaderFile(GNode n) {
+    public static void makeHeaderFile(GNode n) {
         try {
-            header = new File("translator-trOOPers\\output\\output.h");
+            header = new File("output.h");
             writer = new PrintWriter(header);
 
             Node head = NodeUtil.dfs(n, "Head");
@@ -35,7 +35,7 @@ public class HeaderFileMaker {
                 // prints beginning of class struct
                 writer.println("struct " + className + "{");
 
-                Node dataLayout = NodeUtil.dfs(cl, "DataLayout");
+                Node dataLayout = NodeUtil.dfs(cl, "DataLayoutDeclaration");
 
                 // prints data layout
                 printDataLayout(dataLayout);
@@ -53,9 +53,9 @@ public class HeaderFileMaker {
                 // print VTable itself
                 writer.println(vTableName + "() :");
 
-                Node vTable = NodeUtil.dfs(vTableDec, "VTable");
+               //Node vTable = NodeUtil.dfs(vTableDec, "VTable");
 
-                printVTable(vTable, className);
+                //printVTable(vTable, className);
                 writer.println("} ;");
             }
 
@@ -70,7 +70,7 @@ public class HeaderFileMaker {
         }
     }
 
-    private int printNamespaceDecs(Node n) {
+    private static int printNamespaceDecs(Node n) {
         List<Node> namespaces = NodeUtil.dfsAll(n, "NameSpaceDeclaration");
         int numNameSpaces = namespaces.size();
         for (Node ns: namespaces) {
@@ -79,7 +79,7 @@ public class HeaderFileMaker {
         return namespaces.size();
     }
 
-    private void printDecsAndTypeDefs(Node n) {
+    private static void printDecsAndTypeDefs(Node n) {
         for (Node dec: NodeUtil.dfsAll(n, "DeclarationsAndTypedef")) {
             for (int i = 0; i < 3; i++) {
                 writer.println(dec.getString(i) + ";");
@@ -87,30 +87,37 @@ public class HeaderFileMaker {
         }
     }
 
-    private void printDataLayout(Node dataLayout) {
+    private static void printDataLayout(Node dataLayout) {
         // Prints all class field declarations
         Node fields = NodeUtil.dfs(dataLayout, "Fields");
-        printClassFieldDecs(fields);
+        if (fields != null) {
+            printClassFieldDecs(fields);
+        }
 
         // Prints constructor
-        Node constructor = NodeUtil.dfs(dataLayout, "Constructor");
-        printConstructor(constructor);
+        Node constructor = NodeUtil.dfs(dataLayout, "ConstructorDeclaration");
+        if (constructor != null) {
+            printConstructor(constructor);
+        }
 
         // Method Declarations-- all declarations are modifiers returnType Name Parameters
         Node dlMethodDecs = NodeUtil.dfs(dataLayout, "DLMethodDeclarations");
-        printDLMethodDecs(dlMethodDecs);
+        if (dlMethodDecs != null) {
+            printDLMethodDecs(dlMethodDecs);
+        }
     }
 
-    private void printClassFieldDecs(Node fields) {
+    private static void printClassFieldDecs(Node fields) {
         for (Node field: NodeUtil.dfsAll(fields, "FieldDeclaration")) {
             for (int i = 0; i < field.size(); i++) {
-                writer.print(field.getString(0));
+                writer.print(field.getString(i));
                 if (i == field.size()-1) { writer.print(";\n"); }
+                else { writer.print(" "); }
             }
         }
     }
 
-    private void printConstructor(Node constructor) {
+    private static void printConstructor(Node constructor) {
         writer.print(constructor.getNode(0).getString(0)+"("); // prints name
         for (Node p: NodeUtil.dfsAll(constructor.getNode(1), "ConstructorParameter")) {
             writer.print(p.getString(0) + " " + p.getString(1));
@@ -118,10 +125,10 @@ public class HeaderFileMaker {
         writer.print(");\n");
     }
 
-    private void printDLMethodDecs(Node dlMethodDecs) {
+    private static void printDLMethodDecs(Node dlMethodDecs) {
         List<Node> methods = NodeUtil.dfsAll(dlMethodDecs, "DLMethodDeclaration");
         for (Node method: methods) {
-            writer.print(method.getNode(0).getString(0) + " " + method.getNode(1).getString(0) + method.getNode(2).getString(0)); // print modifier "static", return type, and method name
+            writer.print(method.getNode(0).getString(0) + " " + method.getNode(1).getString(0) + " " + method.getNode(2).getString(0) + "("); // print modifier "static", return type, and method name
             Node methodParameters = method.getNode(3);
             for (int i = 0; i < methodParameters.size(); i++) {
                 writer.print(methodParameters.getString(i));
@@ -131,21 +138,22 @@ public class HeaderFileMaker {
         }
     }
 
-    private void printVTMethodDecs(Node vTableDec) {
+    private static void printVTMethodDecs(Node vTableDec) {
         Node vtMethodDecs = NodeUtil.dfs(vTableDec, "VTMethodDeclarations");
-        List <Node> vTableMethodDecs = NodeUtil.dfsAll(vtMethodDecs, "VMethodDeclaration");
+        List <Node> vTableMethodDecs = NodeUtil.dfsAll(vtMethodDecs, "VTMethodDeclaration");
         for (Node method: vTableMethodDecs) {
             writer.print(method.getNode(0).getString(0) + " (*" + method.getNode(1).getString(0) + ")("); // prints returntype and pointer with name
-            for (int i = 2; i < method.getNode(2).size(); i++) {
-                writer.print(method.getNode(i).getString(0));
-                if (i < method.size()-1) { writer.print(", "); }
+            Node parameters = NodeUtil.dfs(method, "Parameters");
+            for (int i = 0; i < parameters.size(); i++) {
+                writer.print(parameters.getString(i));
+                if (i < parameters.size()-1) { writer.print(", "); }
                 else { writer.print(");"); }
             }
             writer.println();
         }
     }
 
-    private void printVTable(Node vTable, String className) {
+    private static void printVTable(Node vTable, String className) {
         List<Node> vTableMethods = NodeUtil.dfsAll(vTable, "VTMethod");
 
         for (int i = 0; i < vTableMethods.size(); i++) {

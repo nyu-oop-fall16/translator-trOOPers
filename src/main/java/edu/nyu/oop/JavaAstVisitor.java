@@ -32,52 +32,53 @@ public class JavaAstVisitor extends Visitor {
         currentClass = n.getString(1);
         if (!currentClass.equals("T" + information.fileName.substring(1))) {
 
-            //Iterator used in order to view a list of all of the direct children of node n.
-            /*Iterator<Object> i = n.iterator();
-            while(i.hasNext()) {
-                information.childrenArray.add(i.next());
-            }*/
-
             ClassInfo thisClass = new ClassInfo();
             thisClass.setName(currentClass);
 
+            //Accessing the fields node of the class
             Node fieldsCheck = NodeUtil.dfs(n, "FieldDeclaration");
             if (fieldsCheck != null) {
                 for (Node field : NodeUtil.dfsAll(n, "FieldDeclaration")) {
                     Node type = NodeUtil.dfs(field, "Type");
-                    Node typeIdentifier = NodeUtil.dfs(type, "QuantifiedIdentifier");
-                    thisClass.addFields(typeIdentifier.getName());
+                    Node typeIdentifier = NodeUtil.dfs(type, "QualifiedIdentifier");
+                    thisClass.addFields(typeIdentifier.getString(0));
                 }
             }
 
+            //Accessing the constructor node of the class
             Node constructorDec = NodeUtil.dfs(n, "ConstructorDeclaration");
             if (constructorDec != null) {
                 Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
                 for(Node formalParam: NodeUtil.dfsAll(formalParams, "FormalParameter")) {
-                    String rtype = NodeUtil.dfs(formalParam, "Type").getNode(1).getString(0);
+                    String rtype = NodeUtil.dfs(formalParam, "Type").getNode(0).getString(0);
                     String name = formalParam.getString(3);
                     thisClass.addConstructorParams(rtype,name);
                 }
+            }
 
+            //Accessing the extends node of the class
+            Node extension = NodeUtil.dfs(n, "Extension");
+            if (constructorDec != null) {
+                String parentClass = NodeUtil.dfs(extension, "Type").getNode(0).getString(0);
+                thisClass.setParent(parentClass);
+            }
+            else {
+                thisClass.setParent("Object");
             }
 
             information.classes.put(currentClass, thisClass);
-
             visit(n);
         }
 
     }
 
     public void visitMethodDeclaration(GNode n) {
-
-        //For some reason this exclusionary bit of code does not work. It is building a dataLayoud and VTale for the main class anyways.
         currentMethod = n.getString(3);
 
         MethodInfo thisMethod = new MethodInfo();
         thisMethod.setName(currentMethod);
 
         // Find modifiers and add them to the ClassInfo Object
-
         Node modifiers = NodeUtil.dfs(n, "Modifiers");
         for (Node m : NodeUtil.dfsAll(modifiers, "Modifier")) {
             thisMethod.addModifier(m.getString(0));
@@ -87,7 +88,8 @@ public class JavaAstVisitor extends Visitor {
         Node typeTest = NodeUtil.dfs(n, "Type");
         if (typeTest.equals(null)) {
             thisMethod.setReturnType("void");
-        } else {
+        }
+        else {
             Node identifier = NodeUtil.dfs(typeTest, "QualifiedIdentifier");
             thisMethod.setReturnType(identifier.getString(0));
         }
@@ -105,7 +107,6 @@ public class JavaAstVisitor extends Visitor {
         }
 
         information.classes.get(currentClass).addMethod(thisMethod);
-
     }
 
     public void visit(Node n) {

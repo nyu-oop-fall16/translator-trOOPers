@@ -44,7 +44,7 @@ public class HeaderASTMaker {
 
     //Creates the Data Layout for a particular ClassInfo object c.
     private GNode createDataLayout(ClassInfo c) {
-        GNode dataLayout = GNode.create("DataLayout");
+        GNode dataLayout = GNode.create("DataLayoutDeclaration");
         GNode fields = GNode.create("Fields");
 
         //Creates the vptr and the vtable declarations in the data layout
@@ -68,7 +68,7 @@ public class HeaderASTMaker {
 
         dataLayout.add(fields);
 
-        // Make the constructor
+        // Make the constructor node
         GNode constructorDec = GNode.create("ConstructorDeclaration");
         GNode constructorName = GNode.create("ConstructorName");
         constructorName.add("__" + c.getName());
@@ -81,26 +81,28 @@ public class HeaderASTMaker {
         for (MethodInfo method: c.getMethods()) {
             GNode newMethod = GNode.create("DLMethodDeclaration");
 
+            //Modifier is set to static
             GNode mod = GNode.create("Modifier");
             mod.add("static");
             newMethod.add(mod);
 
+            //Return type Node
             newMethod.add(method.getReturnType());
 
+            //Method name Node
             GNode methodName = GNode.create("MethodName");
             methodName.add(method.getName());
             newMethod.add(methodName);
 
+            //Parameters Node
             GNode parameters = GNode.create("MethodParameters");
             parameters.add(c.getName());
 
-
-
-
             for (String parameter: method.getParameter()) {
-                newMethod.add(parameter);
+                parameters.add(parameter);
             }
 
+            newMethod.add(parameters);
             methodDecs.add(newMethod);
         }
         dataLayout.add(methodDecs);
@@ -109,23 +111,38 @@ public class HeaderASTMaker {
 
     //Creates the VTable for a particular ClassInfo object c.
     private GNode createVTable(ClassInfo c) {
-        GNode vTable = GNode.create("VTable");
+        GNode vTable = GNode.create("VTDeclaration");
+
+        GNode vTableMethodDeclarations = GNode.create("VTMethodDeclarations");
+        vTable.add(vTableMethodDeclarations);
         for (MethodInfo method: c.getMethods()) {
             GNode newMethod = GNode.create("VTMethodDeclaration");
 
+            //This block will add the method name, the return type, and the types of the parameters to VTMethodDeclaration
             newMethod.add(method.getReturnType());
-            newMethod.add(method.getName());
-
-            GNode mod = GNode.create("Modifier");
-            mod.add("static");
-            newMethod.add(mod);
-
+            GNode name = GNode.create("MethodName");
+            name.add(method.getName());
+            newMethod.add(name);
+            GNode parameters = GNode.create("Parameters");
+            parameters.add(c.getName());
             for (String parameter: method.getParameter()) {
-                newMethod.add(parameter);
+                parameters.add(parameter);
             }
+            newMethod.add(parameters);
 
-            vTable.add(newMethod);
+            //Adding newMethod to the list of methods
+            vTableMethodDeclarations.add(newMethod);
         }
+
+        GNode vT = GNode.create("VT");
+        vTable.add(vT);
+
+        for(MethodInfo method: c.getMethods()) {
+            GNode VTmethod = GNode.create("VTMethod");
+
+
+        }
+
         return vTable;
     }
 
@@ -143,9 +160,11 @@ public class HeaderASTMaker {
         nameSpace1.add(nameSpace2);
 
         for(String s: classes.keySet()) {
-            head.add("struct __" + s + ";");
-            head.add("struct __" + s + "_VT");
-            head.add("typedef __" + s + "* " + s);
+            Node decs = GNode.create("DeclarationsAndTypedef");
+            decs.add("struct __" + s + ";");
+            decs.add("struct __" + s + "_VT");
+            decs.add("typedef __" + s + "* " + s);
+            head.add(decs);
         }
         /*GNode children = GNode.create("children");
         for(Object o: childrenArray) {

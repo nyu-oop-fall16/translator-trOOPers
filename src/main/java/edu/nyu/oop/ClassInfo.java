@@ -16,9 +16,8 @@ import java.util.HashMap;
 */
 
 public class ClassInfo {
-    // private Node parent = whatever this class extends ("Object" if nothing else)
     private String name;
-    //private Node modifier;
+    private String parent;
     private Node constructorParams = GNode.create("ConstructorParameters");
     private List<String> fields = new ArrayList<String>();
     private ArrayList<MethodInfo> methods = new ArrayList<MethodInfo>();
@@ -28,17 +27,15 @@ public class ClassInfo {
     public void setName(String n) {
         name = n;
     }
+
     public String getName() {
         return name;
     }
 
-/*  public void setModifier(Node modifier) {
-        this.modifier = modifier;
-    }
-    public Node getModifier() {
-        return modifier;
-    }
-*/
+    public void setParent(String p) { parent = p;}
+
+    public String getParent() {return parent;}
+
     public void addFields(String name) {
         fields.add(name);
     }

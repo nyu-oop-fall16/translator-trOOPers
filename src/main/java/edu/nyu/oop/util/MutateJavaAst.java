@@ -4,7 +4,7 @@ import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 
-public class MutateJavaAst extends Visitor {
+public class MutateJavaAst {
 
     // mutates the given java ast to reflect a c++ ast
     public static GNode mutate(GNode n) {

@@ -1,7 +1,6 @@
 package edu.nyu.oop;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
@@ -9,6 +8,7 @@ import java.util.List;
 import java.util.ArrayList; // we imported
 
 import edu.nyu.oop.util.*;
+import org.javacc.jjtree.Main;
 import org.slf4j.Logger;
 
 import xtc.tree.GNode;
@@ -27,7 +27,7 @@ import xtc.parser.ParseException;
 public class Boot extends Tool {
     private Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
 
-    List<GNode> g = new ArrayList<GNode>(); // my additions
+    private List<GNode> listGNodes = new ArrayList<GNode>();// me add // my additions
 
     @Override
     public String getName() {
@@ -78,8 +78,8 @@ public class Boot extends Tool {
         return NodeUtil.parseJavaFile(file);
     }
 
-    private List<GNode> listGNodes = new ArrayList<GNode>();// me add
-    private GNode mutatedAst;
+    private GNode mutatedAst; // my additions
+
     @Override
     public void process(Node n) {
         if (runtime.test("printJavaAst")) {
@@ -103,7 +103,7 @@ public class Boot extends Tool {
         // Generates list of GNodes with its dependencies
         if (runtime.test("generateListGNodes")) {
             // add the GNode of the java class passed in
-            g.add((GNode) n);
+            listGNodes.add((GNode) n);
 
             // should be a list of all dependencies and their dependencies recursively gotten
             List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
@@ -111,16 +111,16 @@ public class Boot extends Tool {
             // add the dependencies to the list
             for (int i = 0; i < nodes.size(); i++) {
                 // makes sure that a GNode isn't added to list multiple times during cyclic imports
-                if (!g.contains(nodes.get(i))) {
-                    g.add(nodes.get(i));
+                if (!listGNodes.contains(nodes.get(i))) {
+                    listGNodes.add(nodes.get(i));
                 }
             }
 
 
             // checks the nodes in list
 //            runtime.console().p("Size of GNodes List: " + g.size()).pln().flush();
-            for (int k = 0; k < g.size(); k++) {
-                runtime.console().p("List of GNodes, GNode at index " + k + ": ").format(g.get(k)).pln().flush();
+            for (int k = 0; k < listGNodes.size(); k++) {
+                runtime.console().p("List of GNodes, GNode at index " + k + ": ").format(listGNodes.get(k)).pln().flush();
 //                runtime.console().p("List of GNodes, GNode at index " + k + ": " + g.get(k)).pln().flush();
                 runtime.console().pln().flush();
             }
@@ -130,14 +130,28 @@ public class Boot extends Tool {
 
 
         if(runtime.test("phaseFour")) {
-            GNode nodeCopy = NodeUtil.deepCopyNode(g.get(0));
+            // make a copy of the Java Ast of the test class and mutate it to C++ Ast
+            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
             mutatedAst = MutateJavaAst.mutate(nodeCopy);
-//            runtime.console().p("Mutations: " + mutatedAst).pln().flush();
+
+            // check the Ast in console
             runtime.console().p("Mutate: ").format(mutatedAst).pln().flush();
         }
 
+        // passes the mutated Ast to be used to create the implementation files
         if(runtime.test("phaseFive")){
-            CPPMaker.printToCpp(mutatedAst);
+            // Traverse mutated Ast and print to output.cpp
+            OutputCppMaker outputMaker = new OutputCppMaker();
+            // get the list of strings to be printed after traversing ast
+            OutputCppMaker.ToBePrinted outputPrint = outputMaker.getOutputToBePrinted(mutatedAst);
+            outputMaker.printToOutputCpp(outputPrint); // prints to output.cpp file
+
+            // Traverse mutated Ast and print to main.cpp
+            MainCppMaker mainMaker = new MainCppMaker();
+            // get the list of strings to be printed after traversing ast
+            MainCppMaker.ToBePrinted mainPrint = mainMaker.getMainToBePrinted(mutatedAst);
+            mainMaker.printToMainCpp(mainPrint); // prints to main.cpp file
+
         }
 
     }

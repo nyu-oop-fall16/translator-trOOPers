@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.ArrayList; // we imported
 
 import edu.nyu.oop.util.*;
-import org.javacc.jjtree.Main;
 import org.slf4j.Logger;
 
 import xtc.tree.GNode;

@@ -8,27 +8,15 @@ import java.util.List;
 
 public class MethodInfo {
    // private boolean ifStatic;
-    private Node returnType;
+    private GNode returnType;
     private String name;
     private ArrayList<String> mParameters = new ArrayList<String>();
     private ArrayList<String> modifiers = new ArrayList<String>();
 
-    //Constructor
-
-
     //Set and get methods for the information held within a headerClassMethod object.
-
-    /*public void setIfStatic(boolean b) {
-        ifStatic = b;
-    }
-    public boolean getIfStatic() {
-        return ifStatic;
-    } */
-
     public void addModifier(String modifier) {
         modifiers.add(modifier);
     }
-
     public List<String> getModifiers() {
         return modifiers;
     }
@@ -37,8 +25,7 @@ public class MethodInfo {
         returnType = GNode.create("ReturnType");
         returnType.add(rType);
     }
-
-    public Node getReturnType() {
+    public GNode getReturnType() {
         return returnType;
     }
 
@@ -52,11 +39,8 @@ public class MethodInfo {
     public void addParameter(String mParameter) {
         this.mParameters.add(mParameter);
     }
-    public List<String> getParameter() {
+    public ArrayList<String> getParameters() {
         return mParameters;
     }
-
-
-
 
 }

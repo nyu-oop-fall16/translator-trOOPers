@@ -39,9 +39,12 @@ public class JavaAstVisitor extends Visitor {
             Node fieldsCheck = NodeUtil.dfs(n, "FieldDeclaration");
             if (fieldsCheck != null) {
                 for (Node field : NodeUtil.dfsAll(n, "FieldDeclaration")) {
-                    Node type = NodeUtil.dfs(field, "Type");
-                    Node typeIdentifier = NodeUtil.dfs(type, "QualifiedIdentifier");
-                    thisClass.addFields(typeIdentifier.getString(0));
+                    GNode modifiers = null;
+                    String type = null;
+                    String name = null;
+                    String initialization = null;
+
+                    thisClass.addFields(modifiers, type, name, initialization);
                 }
             }
 
@@ -49,7 +52,7 @@ public class JavaAstVisitor extends Visitor {
             Node constructorDec = NodeUtil.dfs(n, "ConstructorDeclaration");
             if (constructorDec != null) {
                 Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
-                for(Node formalParam: NodeUtil.dfsAll(formalParams, "FormalParameter")) {
+                    for(Node formalParam: NodeUtil.dfsAll(formalParams, "FormalParameter")) {
                     String rtype = NodeUtil.dfs(formalParam, "Type").getNode(0).getString(0);
                     String name = formalParam.getString(3);
                     thisClass.addConstructorParams(rtype,name);
@@ -58,7 +61,7 @@ public class JavaAstVisitor extends Visitor {
 
             //Accessing the extends node of the class
             Node extension = NodeUtil.dfs(n, "Extension");
-            if (constructorDec != null) {
+            if (extension != null) {
                 String parentClass = NodeUtil.dfs(extension, "Type").getNode(0).getString(0);
                 thisClass.setParent(parentClass);
             }
@@ -86,7 +89,7 @@ public class JavaAstVisitor extends Visitor {
 
         // Find return type of method and add it to the MethodInfo object (if void, then add VoidType)
         Node typeTest = NodeUtil.dfs(n, "Type");
-        if (typeTest.equals(null)) {
+        if (typeTest == null) {
             thisMethod.setReturnType("void");
         }
         else {
@@ -98,7 +101,7 @@ public class JavaAstVisitor extends Visitor {
         Node parameter = NodeUtil.dfs(n, "FormalParameters");
         for (Node p : NodeUtil.dfsAll(parameter, "FormalParameter")) {
             Node type = NodeUtil.dfs(p, "Type");
-            if (type.equals(null)) {
+            if (type == null) {
                 thisMethod.addParameter("void");
             } else {
                 Node identifier = NodeUtil.dfs(type, "QualifiedIdentifier");

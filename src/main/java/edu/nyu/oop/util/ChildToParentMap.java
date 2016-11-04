@@ -24,7 +24,7 @@ public class ChildToParentMap {
                     if (o instanceof Node) dispatch((Node) o);
                 }
             }
-        }.dispatch(n);
+        } .dispatch(n);
     }
 
     private void add(Node parent) {

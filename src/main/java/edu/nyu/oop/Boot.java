@@ -137,21 +137,26 @@ public class Boot extends Tool {
             mutatedAst = MutateJavaAst.mutate(nodeCopy);
 
             // check the Ast in console
-            runtime.console().p("Mutate: ").format(mutatedAst).pln().flush();
-//        }
+            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
+        }
 //
 //        // passes the mutated Ast to be used to create the implementation files
-//        if(runtime.test("phaseFive")){
+        if(runtime.test("phaseFive")){
             // Traverse mutated Ast and print to output.cpp
 //            OutputCppMaker outputMaker = new OutputCppMaker();
 //            // get the list of strings to be printed after traversing ast
 //            OutputCppMaker.ToBePrinted outputPrint = outputMaker.getOutputToBePrinted(mutatedAst);
 //            outputMaker.printToOutputCpp(outputPrint); // prints to output.cpp file
+            GNode nodeCopy = NodeUtil.deepCopyNode((GNode)n);
+            mutatedAst = MutateJavaAst.mutate(nodeCopy);
 
+            // check the Ast in console
+            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
             // Traverse mutated Ast and print to main.cpp
             MainCppMaker mainMaker = new MainCppMaker();
             // get the list of strings to be printed after traversing ast
-            MainCppMaker.ToBePrinted mainPrint = mainMaker.getMainToBePrinted(mutatedAst);
+            runtime.console().p(mutatedAst.getNode(mutatedAst.size()-1).getName()).pln().flush();
+            MainCppMaker.ToBePrinted mainPrint = mainMaker.getMainToBePrinted((GNode) mutatedAst.getNode(mutatedAst.size()-1));
             mainMaker.printToMainCpp(mainPrint); // prints to main.cpp file
 
         }

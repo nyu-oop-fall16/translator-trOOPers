@@ -28,9 +28,6 @@ public class MutateJavaAst extends Visitor {
                     boolean foundConstructor = false; // true when ConstructorDeclaration found in ClassBody of class that doesn't contain main method
                     int sizeOfClassBody = classBody.size();
 
-
-
-
                     // loop through children of ClassBody and check if there is a ConstructorDeclaration
                     for(int i=0;i<sizeOfClassBody;i++){
                         if(n.getNode(5).getNode(i).getName().equals("ConstructorDeclaration")) {
@@ -72,12 +69,6 @@ public class MutateJavaAst extends Visitor {
                         }
                     }
 
-                    GNode para1 = GNode.create("para1", "__rt::literal", "java.lang." + classname);
-                    GNode para2 = GNode.create("para2", "(Class)__Object::__class()");
-                    GNode newcla = GNode.create("__Class", para1, para2);
-                    GNode newclassdecla = GNode.create("Return", "new", "__Class", newcla);
-                    GNode classmethoddecla = GNode.create("GetClass", GNode.create("Modifier", "static"), GNode.create("ReturnType", "Class"), GNode.create("ReturnVariable", "k"), newclassdecla);
-
                     GNode modifiers = GNode.create("Modifiers");
                     GNode qualifiedIdentifier = GNode.create("QualifiedIdentifier","Class");
                     GNode type = GNode.create("Type", qualifiedIdentifier,null);
@@ -105,7 +96,6 @@ public class MutateJavaAst extends Visitor {
                             if (extension.getNode(0).getName().equals("Type")) {
                                 GNode extensiontype = (GNode) extension.getNode(0);
                                 if (extensiontype.getNode(0).getName().equals("QualifiedIdentifier")) {
-                                    System.out.println("hiiiii");
                                     String extendsFrom = extensiontype.getNode(0).getString(0);
                                     contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + "), (Class)__" + extendsFrom + "::__class()");
                                 }
@@ -370,10 +360,6 @@ public class MutateJavaAst extends Visitor {
                 visit(n);
             }
 
-
-
-            // ==================== DO NOT MODIFY BELOW THIS LINE =====================================================
-
             /**
              * Dispatch to the children of a given root node.
              * @param n the root node given
@@ -389,13 +375,7 @@ public class MutateJavaAst extends Visitor {
         return n;
     }
 
-
-
     // Below are methods to help shorten above code
-
-    private static GNode buildDefaultConstructor(GNode n){
-        return n;
-    }
 
     /**
      * Given the argument to be printed, returns a CallExpression node reformatted to reflect how things are printed in C++.

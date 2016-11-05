@@ -98,7 +98,6 @@ public class MutateJavaAst extends Visitor {
                             if (!classBody.getNode(0).getName().equals("FieldDeclaration") && !classBody.getNode(0).getName().equals("DefaultConstructorDeclaration"))
                                 classBody.add(0, constructorDeclaration);
                             }
-
                     }
 
 //                    //create ptr constructor

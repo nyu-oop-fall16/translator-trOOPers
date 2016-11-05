@@ -7,6 +7,7 @@ import java.util.List;
 
 import java.util.ArrayList;
 
+import edu.nyu.oop.util.*;
 import edu.nyu.oop.util.JavaFiveImportParser;
 import edu.nyu.oop.util.NodeUtil;
 import edu.nyu.oop.util.XtcProps;
@@ -46,7 +47,10 @@ public class Boot extends Tool {
         bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
         bool("printJavaCode", "printJavaCode", false, "Print Java code.").
         bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
-        bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.");
+        bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
+//        bool("generateHeaderOutput", "generateHeaderOutput", false, "Prints definitions into the output.h file.").
+        bool("phaseFour", "phaseFour", false, "Mutates the Java Ast files to correspond with C++ files.").
+        bool("phaseFive", "phaseFive", false, "Generates the output.cpp files and main.cpp files using mutated Asts.");
     }
 
     @Override
@@ -74,6 +78,10 @@ public class Boot extends Tool {
         return NodeUtil.parseJavaFile(file);
     }
 
+    // create the list
+    List<GNode> listGNodes = new ArrayList<GNode>();
+    private GNode mutatedAst; // my additions
+
     @Override
     public void process(Node n) {
         if (runtime.test("printJavaAst")) {
@@ -95,12 +103,12 @@ public class Boot extends Tool {
             //runtime.console().p("MEEEEE" + nodes.get(0).getName()).flush();
         }
 
+        // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
+
         // Generates list of GNodes with its dependencies
         if (runtime.test("generateListGNodes")){
-            // create the list
-            List<GNode> g = new ArrayList<GNode>();
             // add the GNode of the java class passed in
-            g.add((GNode) n);
+            listGNodes.add((GNode) n);
 
             // should be a list of all dependencies and their dependencies recursively gotten
             List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
@@ -108,21 +116,33 @@ public class Boot extends Tool {
             // add the dependencies to the list
             for(int i = 0; i < nodes.size(); i++) {
                 // makes sure that a GNode isn't added to list multiple times during cyclic imports
-                if(!g.contains(nodes.get(i))) {
-                    g.add(nodes.get(i));
+                if(!listGNodes.contains(nodes.get(i))) {
+                    listGNodes.add(nodes.get(i));
                 }
             }
 
             // checks the nodes in list
 //            runtime.console().p("Size of GNodes List: " + g.size()).pln().flush();
-//            for(int k = 0; k < g.size(); k++){
+            for (int k = 0; k < listGNodes.size(); k++) {
+                runtime.console().p("List of GNodes, GNode at index " + k + ": ").format(listGNodes.get(k)).pln().flush();
 //                runtime.console().p("List of GNodes, GNode at index " + k + ": " + g.get(k)).pln().flush();
-//                runtime.console().pln().flush();
-//            }
+                runtime.console().pln().flush();
+            }
         }
 
+        if(runtime.test("phaseFour")) {
+            //I combine phasefour and five for a moment to test.
+            //And if command phase four and five respectively, the file doesn't mutatedAst and the node it generates
+            //-Prudence
 
-        // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
+            // make a copy of the Java Ast of the test class and mutate it to C++ Ast
+            GNode nodeCopy = NodeUtil.deepCopyNode((GNode)n);
+            mutatedAst = MutateJavaAst.mutate(nodeCopy); // mutate copy
+
+            // check the Ast in console
+            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
+        }
+
     }
 
     /**

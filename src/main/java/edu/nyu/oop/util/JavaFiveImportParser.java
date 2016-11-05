@@ -9,6 +9,8 @@ import xtc.tree.Visitor;
 import java.io.*;
 import java.util.*;
 
+import java.util.ArrayList;
+
 /**
  * This is a utility class which will load the source files for anything referenced by the primary source.
  * Note that it does *not* do this recursively. In other words, it will not return nodes representing the
@@ -22,6 +24,7 @@ public class JavaFiveImportParser {
     private static Logger logger = org.slf4j.LoggerFactory.getLogger(JavaFiveImportParser.class);
 
     private static List<String> inputLocations = loadInputLocations();
+
     private static List<GNode> primarySources = new ArrayList<>(); // stores the primary sources parse is run on - My additions
 
     public static List<GNode> parse(final GNode primarySrc) {

@@ -155,8 +155,9 @@ public class Boot extends Tool {
             // Traverse mutated Ast and print to main.cpp
             MainCppMaker mainMaker = new MainCppMaker();
             // get the list of strings to be printed after traversing ast
-            runtime.console().p(mutatedAst.getNode(mutatedAst.size()-1).getName()).pln().flush();
-            MainCppMaker.ToBePrinted mainPrint = mainMaker.getMainToBePrinted((GNode) mutatedAst.getNode(mutatedAst.size()-1));
+            GNode root=(GNode) mutatedAst.getNode(mutatedAst.size()-1);
+//            runtime.console().p("rootname: "+root.getName()).pln().flush();
+            MainCppMaker.ToBePrinted mainPrint = mainMaker.getMainToBePrinted(root);
             mainMaker.printToMainCpp(mainPrint); // prints to main.cpp file
 
         }

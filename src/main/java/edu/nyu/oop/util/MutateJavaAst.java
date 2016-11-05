@@ -6,21 +6,7 @@ import xtc.tree.Visitor;
 import edu.nyu.oop.util.ChildToParentMap;
 
 
-/**
- * Created by AnnaChiu on 10/26/16.
- */
 public class MutateJavaAst extends Visitor {
-    GNode astGNode;
-//    Runtime runtime;
-
-//    public MutateJavaAst(GNode node){
-//       this.astGNode = node;
-//    }
-
-    //    public MutateJavaAst(Runtime runtime){
-//        this.runtime = runtime;
-//    }
-
     public static GNode mutate(GNode n) {
 
         final ChildToParentMap map = new ChildToParentMap(n);
@@ -31,54 +17,19 @@ public class MutateJavaAst extends Visitor {
                 if(n.getString(1).startsWith("Test")) {
                     System.out.println("entering class declaration of main");
                 }
-//                if (!n.getNode(0).isEmpty()) {//if it's main class
-//                    System.out.println("entering class declaration of main");
-                    // don't have to make it namespace
-//                    if (n.getNode(0).getNode(0).getString(0).equals("public")) {
-//                        n.getNode(0).getNode(0).set(0, "namespace");
-//
-//                    }
-//                }
                 else{ //if it's not in main
-
-
-//                    int sizeOfClassDeclaration = n.size();
                     GNode classBody = (GNode)n.getNode(5);
                     int sizeOfClassBody = classBody.size();
                     boolean addedDefault = false;
                     boolean foundConstructor = false;
-//                    for(int i=0;i<sizeOfClassDeclaration;i++){
                     for(int i=0;i<sizeOfClassBody;i++){
-//                        System.out.println(sizeOfClassBody);
-//                        System.out.println("Class Declaration Child Name: " + n.getNode(5).getNode(i).getName());
-                        if(n.getNode(5).getNode(i).getName().equals("ConstructorDeclaration")){
+                        if(n.getNode(5).getNode(i).getName().equals("ConstructorDeclaration")) {
                             //if constructor declaration is found, mutate that one
                             foundConstructor = true;
                         }
-                        //if constructor declaration is not found, create a default constructor declaration
-//                        else{
-//                            // make ClassBody a variable size instead of fixed
-//                            if(!classBody.hasVariable()){
-//                                classBody = GNode.ensureVariable(classBody);
-//                                n.set(5,classBody);
-//                            }
-//
-//                            GNode constructorDeclaration = GNode.create("DefaultConstructorDeclaration");
-//
-//                            //put constructor declaration after field declaration
-////                            for(int j=0; j<sizeOfClassBody;j++){
-//                                if (classBody.getNode(i).getName().equals("FieldDeclaration") && !addedDefault) {
-//                                    classBody.add(i + 1, constructorDeclaration);
-//                                    addedDefault = true;
-//                                }
-//
-//                                if (!classBody.getNode(i).getName().equals("FieldDeclaration") && !classBody.getNode(i).getName().equals("DefaultConstructorDeclaration"))
-//                                        classBody.add(0, constructorDeclaration);
-//
-//                                System.out.println("Size of class body: " + addedDefault);
-////                            }
-//                        }
                     }
+
+                    //if constructor declaration is not found, create a default constructor declaration
                     if(!foundConstructor){
                         // make ClassBody a variable size instead of fixed
                         if(!classBody.hasVariable()){

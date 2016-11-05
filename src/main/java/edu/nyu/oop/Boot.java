@@ -143,11 +143,10 @@ public class Boot extends Tool {
             GNode rootNode = build.makeAST();
 
             // make the header file
-            HeaderFileMaker.makeHeaderFile(rootNode);
+            HeaderFileMaker maker = new HeaderFileMaker();
+            maker.runVisitor(rootNode);
         }
 
-
-        // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
     }
 
     /**

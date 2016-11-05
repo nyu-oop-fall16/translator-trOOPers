@@ -25,7 +25,9 @@ CompilationUnit(
             "int"
           )
         ),
-        "main",
+        MethodName(
+          "main"
+        ),
         FormalParameters(),
         null,
         null,

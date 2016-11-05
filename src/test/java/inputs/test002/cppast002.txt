@@ -26,7 +26,9 @@ CompilationUnit(
           ),
           null
         ),
-        "toString",
+        MethodName(
+          "toString"
+        ),
         FormalParameters(),
         null,
         null,
@@ -59,7 +61,9 @@ CompilationUnit(
             "int"
           )
         ),
-        "main",
+        MethodName(
+          "main"
+        ),
         FormalParameters(),
         null,
         null,

@@ -26,8 +26,6 @@ public class MutateJavaAst {
                             }
                         }
 
-                        System.out.println("yayyyyyyyyyyyyyyyyyyyyy");
-
                         GNode constructor = GNode.create("ConstructorDeclaration", "__" + classname, "__vptr", "&__vtable");
 
                         GNode para1 = GNode.create("para1", "__rt::literal", "java.lang." + classname);
@@ -43,7 +41,7 @@ public class MutateJavaAst {
 //                    )
                         GNode returnblock = GNode.create("Block", classmethoddecla, GNode.create("ReturnStatement", "k"));
 
-//                    GNode classmethod=GNode.create("ClassMethodDeclaration",GNode.create("Modifiers","static"),class_classmethodtype,class_declarators);
+
                         GNode classmethod = GNode.create("ClassMethodDeclaration", returnblock);
 
                         GNode typequalified = GNode.create("QualifiedIdentifier", "__" + classname + "__VT");
@@ -61,15 +59,19 @@ public class MutateJavaAst {
             }
 
             public void visitMethodDeclaration(GNode n) {
-                System.out.println("HIIIIIIIIIIIIIIIII Method Declarations");
-//                System.out.println(n.getString(3));
+                //UPDATED
+                // change MethodName from String type into GNode type e.g. "main"->MethodName("main")
+                //so that it's accessible to the visitot in phase5 and could be printed in the right order
+                String methodName=n.getString(3);
+                GNode method=GNode.create("MethodName",methodName);
+                n.set(3,method);
+
 
                 // if main method, do adjustments to modifiers, type, and parameters to refect C++ main method signature
-                if (n.getString(3).equals("main")) {
-                    System.out.println("HIIIIIIIIIIIIIIIII Main");
+                if (n.getNode(3).getString(0).equals("main")) {
+//                    System.out.println("HIIIIIIIIIIIIIIIII Main");
                     GNode modifiers = GNode.create("Modifiers");
                     n.set(0, modifiers);
-//                    GNode mainType = GNode.create("IntType");
                     GNode mainType = methodTypes("int");
                     n.set(2, mainType);
                     GNode formalParameters = GNode.create("FormalParameters");
@@ -79,37 +81,28 @@ public class MutateJavaAst {
             }
 
             public void visitFieldDeclaration(GNode n) {
-                System.out.println("HIIIIIIIIIIIIIIIII Field Declarations");
                 Node newclass = n.getNode(2).getNode(0).getNode(2);
-                if (newclass.getName().equals("NewClassExpression")) {
+                if(newclass!=null){
+                    if (newclass.getName().equals("NewClassExpression")) {
                     String classname = newclass.getNode(2).getString(0);
                     newclass.getNode(2).set(0, "__" + classname);
 
+                    }
                 }
 
-//                if(n.getNode(2).getNode(0).getNode(2).getName().equals("NewClassExpression")) {
-//                    Node newclass = n.getNode(2).getNode(0).getNode(2).getNode(2);
-//                    String classname = newclass.getString(0);
-//                    newclass.set(0, "__" + classname);
-//                }
                 visit(n);
             }
 
             public void visitExpressionStatement(GNode n) {
-                GNode callExpression = printExpressionNode(n.getNode(0).getNode(3));
-                n.set(0, callExpression);
+                GNode callExpression=(GNode) n.getNode(0);
+                if(callExpression.size()>3) {
+                    GNode ncallExpression = printExpressionNode(callExpression.getNode(3));
+                    n.set(0, ncallExpression);
+                }
+
                 visit(n);
             }
 
-//            public void visitModifiers(GNode n) {
-////                while (!n.isEmpty()) {
-////                    n.get(0);
-////                }
-////                for(int i = 0; i < n.size(); i++) {
-//                    System.out.println("HIIIIIIIIIIIIIIIII Modifiers");
-////                }
-//                visit(n);
-//            }
 
             // implement method for visiting the nodes
             public void visit(Node n) {

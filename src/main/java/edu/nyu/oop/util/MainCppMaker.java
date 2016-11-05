@@ -140,6 +140,12 @@ public class MainCppMaker extends Visitor {
     public void visitNewClassExpression(GNode n) {
         content.add("new");
         visit(n);
+        if(n.getNode(3).hasName("Arguments")){
+            if(n.getNode(3).isEmpty()){
+                content.add("(");
+                content.add(")");
+            }
+        }
     }
 
     public void visitStringLiteral(GNode n) {

@@ -8,7 +8,8 @@ import xtc.tree.Visitor;
 
 import java.io.*;
 
-// This class visits all the nodes in a CPP AST and prints a file from it
+// This class visits all the nodes in a CPP AST. It saves relevant information into an AggregatedHeaderPrinter as it
+// traverses the tree.
 
 public class HeaderFileMaker extends Visitor {
     private File header;
@@ -22,7 +23,10 @@ public class HeaderFileMaker extends Visitor {
 
     private Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
 
-    public void runVisitor(GNode n) { // call this from Boot.java
+    // This is the method that accesses the header file in order to overwrite it, creates a PrintWriter and an Aggregated
+    // Header Printer, and calls the methods that print the information to the file. This is the method that is to be called
+    // from Boot.java.
+    public void runVisitor(GNode n) {
         try {
             header = new File(XtcProps.get("output.location") + "/output.h");
             writer = new PrintWriter(header);
@@ -44,6 +48,7 @@ public class HeaderFileMaker extends Visitor {
         }
     }
 
+    // This method visits and saves the namespace declarations in the AST.
     public void visitNameSpaceDeclaration(GNode n) {
         numNameSpaces = n.size();
         printer.setNumNamespaces(numNameSpaces);
@@ -56,6 +61,7 @@ public class HeaderFileMaker extends Visitor {
         visit(n);
     }
 
+    // This method visits and saves the struct declarations and typedefs that are found at the beginning of every header file.
     public void visitDeclarationsAndTypedef(GNode n) {
         for (int i = 0; i < 3; i++) {
             printer.addToHeader(n.getString(i) + ";\n");
@@ -64,6 +70,8 @@ public class HeaderFileMaker extends Visitor {
         visit(n);
     }
 
+    // This method visits the class declaration node, saves the class name to a list of classes, and saves the beginning of the
+    // struct.
     public void visitClassDeclaration(GNode n) {
         className = n.getNode(0).getString(0); // get Class Name
         printer.addClass(className);
@@ -74,6 +82,7 @@ public class HeaderFileMaker extends Visitor {
         visit(n);
     }
 
+    // This method visits and saves all of the fields in a given class to that class' HeaderClassPrinter.
     public void visitFieldDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         for (int i = 0; i < n.size(); i++) {
@@ -89,6 +98,7 @@ public class HeaderFileMaker extends Visitor {
         visit(n);
     }
 
+    // This method visits and saves the constructor of a given class to that class' HeaderClassPrinter.
     public void visitConstructorDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         hcp.addToDL(n.getNode(0).getString(0)+"("); // prints name
@@ -101,6 +111,8 @@ public class HeaderFileMaker extends Visitor {
         visit(n);
     }
 
+    // This method visits and saves all of the method declarations in a given class to that class' HeaderClassPrinter's
+    // data layout.
     public void visitDLMethodDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         hcp.addToDL(n.getNode(0).getString(0) + " " + n.getNode(1).getString(0) + " " + n.getNode(2).getString(0) + "("); // print modifier "static", return type, and method name
@@ -110,6 +122,7 @@ public class HeaderFileMaker extends Visitor {
         visit(n);
     }
 
+    // This method visits and saves the beginning of the VTable struct to that class' HeaderClassPrinter's vTable declaration buffer.
     public void visitVTDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         hcp.addToDL("};\n\n"); // end DataLayout
@@ -119,12 +132,15 @@ public class HeaderFileMaker extends Visitor {
         visit(n);
     }
 
+    // This method visits every VTable Method and saves information relevant both to declaring it and to putting it in the VTable.
     public void visitVTMethod(GNode n) {
         buildMethodDecs(n);
         buildVTable(n);
         visit(n);
     }
 
+    // This helper method saves the information needed for the VTable declaration of a given node to the correct class'
+    // HeaderClassPrinter's method declarations.
     private void buildMethodDecs(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         if (n.getNode(0).getString(0).equals("isa")) {
@@ -137,6 +153,8 @@ public class HeaderFileMaker extends Visitor {
         }
     }
 
+    // This helper method saves the information needed for the VTable listing of a given node to the correct class'
+    // HeaderClassPrinter's vTable. It accounts for whether methods are inherited or not.
     private void buildVTable(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
 
@@ -158,6 +176,8 @@ public class HeaderFileMaker extends Visitor {
         }
     }
 
+    // This helper method saves the correct VTable listing for an inherited method to the current class' HeaderClassPrinter's
+    // vTable.
     private void addInheritedMethod(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         hcp.addToVTable(n.getNode(0).getString(0) + "((" + n.getNode(1).getString(0) + "(*)(");
@@ -165,11 +185,15 @@ public class HeaderFileMaker extends Visitor {
         hcp.addToVTable(s + ") &__" + n.getNode(2).getString(0) + "::" + n.getNode(0).getString(0) + "),\n");
     }
 
+    // This helper method saves the correct VTable listing for a noninherited method to the current class' HeaderClassPrinter's
+    // vTable.
     private void addOwnMethod(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         hcp.addToVTable(n.getNode(0).getString(0) + "(&" + className + "::" + n.getNode(0).getString(0) + "),\n");
     }
 
+    // This helper method saves the parameters from a given Node representing a method's parameters to a StringBuffer. The
+    // method then returns this StringBuffer, where it will be added to the correct class' HeaderClassPrinter in the right place.
     private StringBuffer addParamsToBuffer(Node params) {
         StringBuffer s = new StringBuffer();
         if (params.isEmpty()) {

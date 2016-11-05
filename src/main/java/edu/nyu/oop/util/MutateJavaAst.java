@@ -1,21 +1,30 @@
 package edu.nyu.oop.util;
 
-import xtc.tree.Node;
 import xtc.tree.GNode;
+import xtc.tree.Node;
 import xtc.tree.Visitor;
+
+import java.util.Map;
+import java.util.Set;
 
 public class MutateJavaAst {
 
     // mutates the given java ast to reflect a c++ ast
     public static GNode mutate(GNode n) {
         new Visitor() {
+
+            ChildToParentMap m;
+
             // visit ClassDeclaration and make following changes
             public void visitClassDeclaration(GNode n) {
+                //put "test000"->ClassName("test000")
+                String classname = n.getString(1);
+                n.set(1,GNode.create("ClassName",classname));
+                //
                 if (!n.getNode(0).isEmpty()) { //if it's the testXXX class
                     if (n.getNode(0).getNode(0).getString(0).equals("public")) {
                         n.getNode(0).getNode(0).set(0, "namespace");
                     } else { //if it's class declaration that's not testXXX
-                        String classname = n.getString(1);
                         //pass "__this" as parameter
                         Node methoddeclaration = n.getNode(5).getNode(0);
                         if (methoddeclaration.getNode(4).getName().equals("FormalParameters")) {
@@ -80,6 +89,17 @@ public class MutateJavaAst {
                 visit(n);
             }
 
+            public void visitBlock(GNode n){
+                try {
+                    if (n.getNode(0).hasName("FieldDeclaration")) {
+                        m = new ChildToParentMap(n);
+                    }
+                }catch (Exception e){
+
+                }
+                visit(n);
+            }
+
             public void visitFieldDeclaration(GNode n) {
                 Node newclass = n.getNode(2).getNode(0).getNode(2);
                 if(newclass!=null){
@@ -89,7 +109,39 @@ public class MutateJavaAst {
 
                     }
                 }
+                visit(n);
+            }
 
+            public void visitDeclarators(GNode n) {
+                //e.g. B b=new __B();
+                //A a2=b; -->> A a2=(A) b;
+                //compares b's new declared class(A) with its original class(B)
+                //if it doesn't match, cast B to A.
+                Node declaratorsType = n.getNode(0).getNode(2);
+                try{
+                if (declaratorsType.hasName("PrimaryIdentifier")) {
+                    String RHS = declaratorsType.getString(0);
+                    System.out.println("RHS= " + RHS);
+                    Node field = m.fetchParentFor(n);
+                    String newclasstype = field.getNode(1).getNode(0).getString(0);
+                    assert m != null;
+                    Map<Node, Node> blockmap = m.getMap();
+                    Set<Node> keys = blockmap.keySet();
+                    for (Node i : keys) {
+                        if (i.hasName("FieldDeclaration")) {
+                            String LHS = i.getNode(2).getNode(0).getString(0);
+                            if (LHS.equals(RHS)) {
+                                String originalclasstype = i.getNode(1).getNode(0).getString(0);
+                                if (!originalclasstype.equals(newclasstype)) {
+                                    n.getNode(0).set(1, "(" + newclasstype + ")");
+                                }
+                                System.out.println("originalClasstype= " + originalclasstype);
+                            }
+                        }
+                    }
+                }
+                }catch (Exception e){
+                }
                 visit(n);
             }
 
@@ -100,6 +152,19 @@ public class MutateJavaAst {
                     n.set(0, ncallExpression);
                 }
 
+                visit(n);
+            }
+
+            public void visitCallExpression(GNode n){
+                try {
+                    if (n.getNode(3).hasName("Arguments")) {
+                        String callname = n.getString(2);
+                        GNode g = GNode.create("CallName", callname);
+                        n.set(2, g);
+                    }
+                }catch (Exception e){
+
+                }
                 visit(n);
             }
 

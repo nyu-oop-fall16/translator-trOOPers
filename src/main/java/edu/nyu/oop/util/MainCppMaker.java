@@ -19,8 +19,7 @@ public class MainCppMaker extends Visitor {
     private List<String> content = new ArrayList<String>();
 
     // constructor - uses super class's constructor
-    public MainCppMaker() {
-    }
+    public MainCppMaker() {}
 
     public void visit(Node n) {
         for (Object o : n) {
@@ -89,15 +88,15 @@ public class MainCppMaker extends Visitor {
         }
     }
 
-
     public void visitDeclarator(GNode n) {
         content.add(n.getString(0));
-        if (n.getNode(2) != null) {
-            content.add("=");
+        content.add("=");
+
+        if (n.getString(1) != null) {
+            content.add(n.getString(1));
         }
         visit(n);
     }
-
 
     public void visitArguments(GNode n) {
         if (!n.isEmpty()) {
@@ -108,26 +107,51 @@ public class MainCppMaker extends Visitor {
             } else {
                 visit(n);
             }
-        } else {
+        } else if(n.isEmpty()){
+            content.add("(");
+            content.add(")");
             visit(n);
         }
     }
 
+    public void visitCallName(GNode n){
+        content.add("->");
+        content.add("_vptr");
+        content.add("->");
+        content.add(n.getString(0));
+        visit(n);
+    }
+
     public void visitCallExpression(GNode n) {
         String c1 = n.getNode(0).getName();
-        if (c1.equals("PrimaryIdentifier")) {
+//        if (c1.equals("PrimaryIdentifier")) {
+//            visit(n);
+//            content.add(n.getNode(0).getString(0));
+//            content.add("->");
+//            content.add("_vptr");
+//            content.add("->");
+//            content.add(n.getString(2));
+
+//            System.out.println("node3"+n.getNode(3).toString());
+
+//        } else {
             visit(n);
-            content.add("->");
-            content.add(n.getString(2));
-        } else {
-            visit(n);
-        }
-        if (n.size() > 3) {
-            Node c4 = n.getNode(3);
-            if (c4.hasName("Arguments") && c4.isEmpty()) {
-                content.add("(");
-                content.add(")");
+//        }
+//        if (n.size() > 3) {
+//            Node c4 = n.getNode(3);
+//            if (c4.hasName("Arguments") ) {
+//                content.add("(");
+//                content.add(")");
+//            }
+//        }
+        try {
+            String check=n.getNode(2).getString(0);
+            if (check.equals("toString")||check.equals("getFld")) {
+                content.add("->");
+                content.add("data");
             }
+        }catch (Exception e){
+
         }
     }
 
@@ -136,20 +160,45 @@ public class MainCppMaker extends Visitor {
         visit(n);
     }
 
-
     public void visitNewClassExpression(GNode n) {
         content.add("new");
         visit(n);
-        if(n.getNode(3).hasName("Arguments")){
-            if(n.getNode(3).isEmpty()){
-                content.add("(");
-                content.add(")");
-            }
-        }
+//        if(n.getNode(3).hasName("Arguments")){
+//            if(n.getNode(3).isEmpty()){
+//                content.add("(");
+//                content.add(")");
+//            }
+//        }
     }
 
     public void visitStringLiteral(GNode n) {
         content.add(n.getString(0));
+        visit(n);
+    }
+
+    public void visitClassDeclaration(GNode n){
+        visit(n);
+    }
+
+    public void visitModifier(GNode n){
+        String s=n.getString(0);
+        if(s.equals("namespace")){
+            content.add("using namespace");
+        }
+        visit(n);
+    }
+
+    public void visitClassName(GNode n){
+        String classname=n.getString(0);
+        if(classname.startsWith("Test")){
+            content.add("inputs::");
+            classname=classname.toLowerCase();
+            content.add(classname);
+            content.add(";");
+        }else{
+            content.add(classname);
+        }
+
         visit(n);
     }
 
@@ -164,22 +213,11 @@ public class MainCppMaker extends Visitor {
 
 
     // prints implementation to output.cpp
-    public void printToMainCpp(ToBePrinted printThis) {
+    public void printToMainCpp(String s) {
         // Create a printwriter to write into output.cpp file
         File main = loadMainCpp();
         PrintWriter mainWriter = getWriter(main);
-
-        // sorts the impelementation code by index (print according to the order they appear in ast)
-
-        printThis.sortByIndex();
-//        System.out.println("sorted");
-        // print to output file
-        for (int i = 0; i < printThis.getList().size(); i++) {
-//            System.out.println("the " + i + " element is " + printThis.getList().get(i).getOutputString());
-            mainWriter.print(printThis.getList().get(i).getOutputString() + " ");
-        }
-
-        // close writer when done
+        mainWriter.print(s);
         mainWriter.close();
     }
 
@@ -201,21 +239,27 @@ public class MainCppMaker extends Visitor {
     }
 
     // visits the whole ast and returns the list of what needs to be printed in main.cpp
-    public ToBePrinted getMainToBePrinted(GNode n) {
+    public String getMainToBePrinted(GNode n) {
+        content.add("#include <iostream>\n");
+        content.add("#include output.h\n");
+        content.add("using namespace");
+        content.add("std");
+        content.add(";\n");
         super.dispatch(n);
         String output="";
         for(String s:content) {
             output+=s;
             output+=" ";
-
         }
+
         if(output.endsWith(" ")){
             output=output.substring(0,output.length()-1);
         }
 
-        System.out.println(content.toString());
+//        System.out.println(content.toString());
         System.out.println(output);
-        return mainPrint;
+        return output;
+//        return mainPrint;
     }
 
     // An instance of this class will be mutated as the Ast is traversed.
@@ -243,6 +287,7 @@ public class MainCppMaker extends Visitor {
             return s.toString();
 
         }
+        // sorts the impelementation code by index (print according to the order they appear in ast)
 
         public void addString(int index, String str) {
             IndexOrderedOutputs out = new IndexOrderedOutputs(index, str);

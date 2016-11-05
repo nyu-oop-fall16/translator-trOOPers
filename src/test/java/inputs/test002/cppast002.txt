@@ -3,12 +3,14 @@ CompilationUnit(
     null,
     QualifiedIdentifier(
       "inputs",
-      "test002"
+      "test005"
     )
   ),
   ClassDeclaration(
     Modifiers(),
-    "A",
+    ClassName(
+      "A"
+    ),
     null,
     null,
     null,
@@ -43,12 +45,59 @@ CompilationUnit(
     )
   ),
   ClassDeclaration(
+    Modifiers(),
+    ClassName(
+      "B"
+    ),
+    null,
+    Extension(
+      Type(
+        QualifiedIdentifier(
+          "A"
+        ),
+        null
+      )
+    ),
+    null,
+    ClassBody(
+      MethodDeclaration(
+        Modifiers(
+          Modifier(
+            "public"
+          )
+        ),
+        null,
+        Type(
+          QualifiedIdentifier(
+            "String"
+          ),
+          null
+        ),
+        MethodName(
+          "toString"
+        ),
+        FormalParameters(),
+        null,
+        null,
+        Block(
+          ReturnStatement(
+            StringLiteral(
+              "\"B\""
+            )
+          )
+        )
+      )
+    )
+  ),
+  ClassDeclaration(
     Modifiers(
       Modifier(
         "namespace"
       )
     ),
-    "Test002",
+    ClassName(
+      "Test005"
+    ),
     null,
     null,
     null,
@@ -72,13 +121,37 @@ CompilationUnit(
             Modifiers(),
             Type(
               QualifiedIdentifier(
+                "B"
+              ),
+              null
+            ),
+            Declarators(
+              Declarator(
+                "b",
+                null,
+                NewClassExpression(
+                  null,
+                  null,
+                  QualifiedIdentifier(
+                    "__B"
+                  ),
+                  Arguments(),
+                  null
+                )
+              )
+            )
+          ),
+          FieldDeclaration(
+            Modifiers(),
+            Type(
+              QualifiedIdentifier(
                 "A"
               ),
               null
             ),
             Declarators(
               Declarator(
-                "a",
+                "a1",
                 null,
                 NewClassExpression(
                   null,
@@ -96,16 +169,16 @@ CompilationUnit(
             Modifiers(),
             Type(
               QualifiedIdentifier(
-                "Object"
+                "A"
               ),
               null
             ),
             Declarators(
               Declarator(
-                "o",
+                "a2",
                 null,
                 PrimaryIdentifier(
-                  "a"
+                  "b"
                 )
               )
             )
@@ -121,7 +194,33 @@ CompilationUnit(
               Arguments(
                 CallExpression(
                   PrimaryIdentifier(
-                    "o"
+                    "a1"
+                  ),
+                  null,
+                  "toString",
+                  Arguments()
+                )
+              ),
+              SelectionExpression(
+                PrimaryIdentifier(
+                  "std"
+                ),
+                "endl"
+              )
+            )
+          ),
+          ExpressionStatement(
+            CallExpression(
+              SelectionExpression(
+                PrimaryIdentifier(
+                  "std"
+                ),
+                "cout"
+              ),
+              Arguments(
+                CallExpression(
+                  PrimaryIdentifier(
+                    "a2"
                   ),
                   null,
                   "toString",

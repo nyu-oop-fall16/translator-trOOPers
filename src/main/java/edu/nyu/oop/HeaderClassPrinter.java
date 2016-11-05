@@ -1,9 +1,5 @@
 package edu.nyu.oop;
 
-import xtc.tree.Node;
-
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 public class HeaderClassPrinter {

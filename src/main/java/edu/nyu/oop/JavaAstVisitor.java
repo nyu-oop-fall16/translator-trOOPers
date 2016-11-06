@@ -35,21 +35,8 @@ public class JavaAstVisitor extends Visitor {
             ClassInfo thisClass = new ClassInfo();
             thisClass.setName(currentClass);
 
-            //Accessing the fields node of the class
-            /*Node fieldsCheck = NodeUtil.dfs(n, "FieldDeclaration");
-            if (fieldsCheck != null) {
-                for (Node field : NodeUtil.dfsAll(n, "FieldDeclaration")) {
-                    GNode modifiers = null;
-                    String type = null;
-                    String name = null;
-                    String initialization = null;
-
-                    thisClass.addFields(modifiers, type, name, initialization);
-                }
-            }*/
-
+            //Accessing the classBody node, iterating through it children, and processing the FieldDeclaration Nodes.
             Node classBody = NodeUtil.dfs(n, "ClassBody");
-
             if (classBody != null) {
                 Iterator<Object> fieldCheck = classBody.iterator();
                 while (fieldCheck.hasNext()) {
@@ -85,9 +72,7 @@ public class JavaAstVisitor extends Visitor {
                 }
             }
 
-
-
-            //Accessing the constructor node of the class
+            //Accessing the constructor node of the class and extracting the parameters.
             Node constructorDec = NodeUtil.dfs(n, "ConstructorDeclaration");
             if (constructorDec != null) {
                 Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");

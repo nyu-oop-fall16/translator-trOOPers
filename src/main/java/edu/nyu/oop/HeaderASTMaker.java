@@ -54,12 +54,29 @@ public class HeaderASTMaker {
 
         // Fill the field declarations
         GNode fieldVPTR = GNode.create("FieldDeclaration");
-        fieldVPTR.add("__" + c.getName() + "_VT*");
-        fieldVPTR.add("__vptr");
+        GNode vptrMod = GNode.create("Modifiers");
+        GNode vptrType = GNode.create("FieldType");
+        vptrType.add("__" + c.getName() + "_VT*");
+        GNode vptrName = GNode.create("FieldName");
+        vptrName.add("__vptr");
+        GNode vptrInit = GNode.create("Initialization");
+        fieldVPTR.add(vptrMod);
+        fieldVPTR.add(vptrType);
+        fieldVPTR.add(vptrName);
+        fieldVPTR.add(vptrInit);
+
         GNode fieldVTable = GNode.create("FieldDeclaration");
-        fieldVTable.add("static");
-        fieldVTable.add("__" + c.getName() + "_VT");
-        fieldVTable.add("__vtable");
+        GNode vtFieldMod = GNode.create("Modifiers");
+        vtFieldMod.add("static");
+        GNode vtFieldType = GNode.create("FieldType");
+        vtFieldType.add("__" + c.getName() + "_VT");
+        GNode vtFieldName = GNode.create("FieldName");
+        vtFieldName.add("__vtable");
+        GNode vtFieldInit = GNode.create("Initialization");
+        fieldVTable.add(vtFieldMod);
+        fieldVTable.add(vtFieldType);
+        fieldVTable.add(vtFieldName);
+        fieldVTable.add(vtFieldInit);
 
         fields.add(fieldVPTR);
         fields.add(fieldVTable);
@@ -187,7 +204,7 @@ public class HeaderASTMaker {
         nameSpace1.add(nameSpace2);
 
         for(String s: classes.keySet()) {
-            Node decs = GNode.create("DeclarationsAndTypedef");
+            GNode decs = GNode.create("DeclarationsAndTypedef");
             decs.add("struct __" + s);
             decs.add("struct __" + s + "_VT");
             decs.add("typedef __" + s + "* " + s);

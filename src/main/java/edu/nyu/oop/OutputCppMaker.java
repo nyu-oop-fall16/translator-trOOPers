@@ -1,5 +1,8 @@
-package edu.nyu.oop.util;
+package edu.nyu.oop;
 
+import edu.nyu.oop.util.ChildToParentMap;
+import edu.nyu.oop.util.JavaFiveImportParser;
+import edu.nyu.oop.util.XtcProps;
 import org.slf4j.Logger;
 import xtc.tree.GNode;
 import xtc.tree.Node;

@@ -96,7 +96,6 @@ public class Boot extends Tool {
                 new JavaPrinter(runtime.console()).dispatch(node);
             }
             runtime.console().flush();
-            //runtime.console().p("MEEEEE" + nodes.get(0).getName()).flush();
         }
 
         // Generates list of GNodes with its dependencies
@@ -125,17 +124,9 @@ public class Boot extends Tool {
             }
 
         }
-        // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
-
-
 
         if(runtime.test("phaseFour")) {
-            //I combine phasefour and five for a moment to test.
-            //And if command phase four and five respectively, the file doesn't mutatedAst and the node it generates
-            //-Prudence
-
             // make a copy of the Java Ast of the test class and mutate it to C++ Ast
-//            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
             GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
             mutatedAst = MutateJavaAst.mutate(nodeCopy);
 
@@ -144,36 +135,16 @@ public class Boot extends Tool {
         }
 
 
-//        // passes the mutated Ast to be used to create the implementation files
+        // passes the mutated Ast to be used to create the implementation files
         if(runtime.test("phaseFive")) {
-            //GNode nodeCopy = NodeUtil.deepCopyNode((GNode)n);
-            //mutatedAst = MutateJavaAst.mutate(nodeCopy);
-            // Traverse mutated Ast and print to output.cpp
-            //runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
             OutputCppMaker outputMaker = new OutputCppMaker();
-//            // get the list of strings to be printed after traversing ast
-//            OutputCppMaker.ToBePrinted outputPrint = outputMaker.getOutputToBePrinted(mutatedAst);
-//            outputMaker.printToOutputCpp(outputPrint); // prints to output.cpp file
-            String outputcontent=outputMaker.getOutputToBePrinted(mutatedAst);
-            outputMaker.printToOutputCpp(outputcontent);
+            // get the list of strings to be printed after traversing ast
+            String outputContent=outputMaker.getOutputToBePrinted(mutatedAst);
+            outputMaker.printToOutputCpp(outputContent);
 
             MainCppMaker mainMaker = new MainCppMaker();
-            String maincontent=mainMaker.getMainToBePrinted(mutatedAst);
-            mainMaker.printToMainCpp(maincontent);
-
-
-
-            // check the Ast in console
-//            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
-            // Traverse mutated Ast and print to main.cpp
-//            MainCppMaker mainMaker = new MainCppMaker();
-            // get the list of strings to be printed after traversing ast
-//            GNode root=(GNode) mutatedAst.getNode(mutatedAst.size()-1);
-//            String maincontent=mainMaker.getMainToBePrinted(root);
-//            mainMaker.printToMainCpp(maincontent);
-//            MainCppMaker.ToBePrinted mainPrint = mainMaker.getMainToBePrinted(root);
-//            mainMaker.printToMainCpp(mainPrint); // prints to main.cpp file
-
+            String mainContent=mainMaker.getMainToBePrinted(mutatedAst);
+            mainMaker.printToMainCpp(mainContent);
         }
     }
 

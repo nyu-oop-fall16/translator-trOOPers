@@ -18,6 +18,7 @@ import xtc.util.Tool;
 import xtc.lang.JavaPrinter;
 import xtc.parser.ParseException;
 
+
 /**
  * This is the entry point to your program. It configures the user interface, defining
  * the set of valid commands for your tool, provides feedback to the user about their inputs
@@ -43,10 +44,12 @@ public class Boot extends Tool {
         super.init();
         // Declare command line arguments.
         runtime.
-        bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
-        bool("printJavaCode", "printJavaCode", false, "Print Java code.").
-        bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
-        bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.");
+                bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
+                bool("printJavaCode", "printJavaCode", false, "Print Java code.").
+                bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
+                bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
+                bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
+                bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.");
     }
 
     @Override
@@ -112,7 +115,6 @@ public class Boot extends Tool {
                     g.add(nodes.get(i));
                 }
             }
-
             // checks the nodes in list
 //            runtime.console().p("Size of GNodes List: " + g.size()).pln().flush();
 //            for(int k = 0; k < g.size(); k++){
@@ -121,8 +123,30 @@ public class Boot extends Tool {
 //            }
         }
 
+        if (runtime.test("printHeaderAst")) {
+            JavaAstVisitor v = new JavaAstVisitor();
+            HeaderASTMaker build;
+            build = v.getBuildInfo(n);
 
-        // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
+            //Create GNode that will be the root node of the AST.
+            GNode rootNode;
+            rootNode = build.makeAST();
+            runtime.console().format(rootNode).pln().flush();
+
+        }
+
+        if (runtime.test("printHeaderFile")) {
+            JavaAstVisitor v = new JavaAstVisitor();
+            HeaderASTMaker build = v.getBuildInfo(n);
+
+            //Create GNode that will be the root node of the AST.
+            GNode rootNode = build.makeAST();
+
+            // make the header file
+            HeaderFileMaker maker = new HeaderFileMaker();
+            maker.runVisitor(rootNode);
+        }
+
     }
 
     /**

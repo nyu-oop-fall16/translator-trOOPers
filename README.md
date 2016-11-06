@@ -1,16 +1,16 @@
 This translator contains the following classes, all of which are either new or modified from their original state:
-JavaFiveImportParser.java, 
-JavaAstVisitor.java, 
-HeaderAstMaker.java, 
-ClassInfo.java, 
-MethodInfo.java, 
-HeaderFileMaker.java, 
-HeaderClassPrinter.java, 
-AggregatedHeaderPrinter.java, 
-MutateJavaAst.java, 
-OutputCppMaker.java, 
-MainCppMaker.java, and
-Boot.java.
+*JavaFiveImportParser.java 
+*JavaAstVisitor.java
+*HeaderAstMaker.java 
+*ClassInfo.java
+*MethodInfo.java 
+*HeaderFileMaker.java 
+*HeaderClassPrinter.java 
+*AggregatedHeaderPrinter.java 
+*MutateJavaAst.java
+*OutputCppMaker.java 
+*MainCppMaker.java
+*Boot.java
 
 In order to run the translator, the user must call sbt from the terminal in the translator directory and then call "runTranslator". The files output.h, output.cpp, and main.cpp in the output folder will then be modified accordingly.
 

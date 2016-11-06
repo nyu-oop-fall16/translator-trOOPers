@@ -98,7 +98,6 @@ public class Boot extends Tool {
                 new JavaPrinter(runtime.console()).dispatch(node);
             }
             runtime.console().flush();
-            //runtime.console().p("MEEEEE" + nodes.get(0).getName()).flush();
         }
 
         // Generates list of GNodes with its dependencies

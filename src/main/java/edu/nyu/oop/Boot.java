@@ -1,23 +1,18 @@
 package edu.nyu.oop;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.List;
-
-import java.util.ArrayList;
-
 import edu.nyu.oop.util.*;
-import edu.nyu.oop.util.JavaFiveImportParser;
-import edu.nyu.oop.util.NodeUtil;
-import edu.nyu.oop.util.XtcProps;
 import org.slf4j.Logger;
-
+import xtc.lang.JavaPrinter;
+import xtc.parser.ParseException;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.util.Tool;
-import xtc.lang.JavaPrinter;
-import xtc.parser.ParseException;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is the entry point to your program. It configures the user interface, defining
@@ -28,6 +23,9 @@ import xtc.parser.ParseException;
  */
 public class Boot extends Tool {
     private Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
+
+    private List<GNode> listGNodes = new ArrayList<GNode>();// me add // my additions
+    private GNode mutatedAst; // my additions
 
     @Override
     public String getName() {
@@ -49,6 +47,7 @@ public class Boot extends Tool {
         bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
         bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
 //        bool("generateHeaderOutput", "generateHeaderOutput", false, "Prints definitions into the output.h file.").
+
         bool("phaseFour", "phaseFour", false, "Mutates the Java Ast files to correspond with C++ files.").
         bool("phaseFive", "phaseFive", false, "Generates the output.cpp files and main.cpp files using mutated Asts.");
     }
@@ -78,9 +77,6 @@ public class Boot extends Tool {
         return NodeUtil.parseJavaFile(file);
     }
 
-    // create the list
-    List<GNode> listGNodes = new ArrayList<GNode>();
-    private GNode mutatedAst; // my additions
 
     @Override
     public void process(Node n) {
@@ -103,10 +99,8 @@ public class Boot extends Tool {
             //runtime.console().p("MEEEEE" + nodes.get(0).getName()).flush();
         }
 
-        // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
-
         // Generates list of GNodes with its dependencies
-        if (runtime.test("generateListGNodes")){
+        if (runtime.test("generateListGNodes")) {
             // add the GNode of the java class passed in
             listGNodes.add((GNode) n);
 
@@ -114,12 +108,13 @@ public class Boot extends Tool {
             List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
 
             // add the dependencies to the list
-            for(int i = 0; i < nodes.size(); i++) {
+            for (int i = 0; i < nodes.size(); i++) {
                 // makes sure that a GNode isn't added to list multiple times during cyclic imports
-                if(!listGNodes.contains(nodes.get(i))) {
+                if (!listGNodes.contains(nodes.get(i))) {
                     listGNodes.add(nodes.get(i));
                 }
             }
+
 
             // checks the nodes in list
 //            runtime.console().p("Size of GNodes List: " + g.size()).pln().flush();
@@ -128,7 +123,11 @@ public class Boot extends Tool {
 //                runtime.console().p("List of GNodes, GNode at index " + k + ": " + g.get(k)).pln().flush();
                 runtime.console().pln().flush();
             }
+
         }
+        // if (runtime.test("Your command here.")) { ... don't forget to add it to init()
+
+
 
         if(runtime.test("phaseFour")) {
             //I combine phasefour and five for a moment to test.
@@ -136,13 +135,46 @@ public class Boot extends Tool {
             //-Prudence
 
             // make a copy of the Java Ast of the test class and mutate it to C++ Ast
-            GNode nodeCopy = NodeUtil.deepCopyNode((GNode)n);
-            mutatedAst = MutateJavaAst.mutate(nodeCopy); // mutate copy
+//            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
+            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
+            mutatedAst = MutateJavaAst.mutate(nodeCopy);
 
             // check the Ast in console
             runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
         }
 
+
+//        // passes the mutated Ast to be used to create the implementation files
+        if(runtime.test("phaseFive")){
+            //GNode nodeCopy = NodeUtil.deepCopyNode((GNode)n);
+            //mutatedAst = MutateJavaAst.mutate(nodeCopy);
+            // Traverse mutated Ast and print to output.cpp
+            //runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
+            OutputCppMaker outputMaker = new OutputCppMaker();
+//            // get the list of strings to be printed after traversing ast
+//            OutputCppMaker.ToBePrinted outputPrint = outputMaker.getOutputToBePrinted(mutatedAst);
+//            outputMaker.printToOutputCpp(outputPrint); // prints to output.cpp file
+            String outputcontent=outputMaker.getOutputToBePrinted(mutatedAst);
+            outputMaker.printToOutputCpp(outputcontent);
+
+            MainCppMaker mainMaker = new MainCppMaker();
+            String maincontent=mainMaker.getMainToBePrinted(mutatedAst);
+            mainMaker.printToMainCpp(maincontent);
+
+
+
+            // check the Ast in console
+//            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
+            // Traverse mutated Ast and print to main.cpp
+//            MainCppMaker mainMaker = new MainCppMaker();
+            // get the list of strings to be printed after traversing ast
+//            GNode root=(GNode) mutatedAst.getNode(mutatedAst.size()-1);
+//            String maincontent=mainMaker.getMainToBePrinted(root);
+//            mainMaker.printToMainCpp(maincontent);
+//            MainCppMaker.ToBePrinted mainPrint = mainMaker.getMainToBePrinted(root);
+//            mainMaker.printToMainCpp(mainPrint); // prints to main.cpp file
+
+        }
     }
 
     /**

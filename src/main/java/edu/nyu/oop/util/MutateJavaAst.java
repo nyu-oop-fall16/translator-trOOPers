@@ -16,99 +16,101 @@ public class MutateJavaAst extends Visitor {
         new Visitor() {
             public void visitClassDeclaration(GNode n) {
                 // if Class name starts with "Test" then MethodDeclaration must have main method
-                if(n.getString(1).startsWith("Test")) {
+                if (n.getString(1).startsWith("Test")) {
                     // don't adjust class with main method
                 }
                 //if it's not Testxxx class
-                else{
+                else {
                     String classname = n.getString(1);
-                    GNode classBody = (GNode)n.getNode(5); // go to the ClassBody of the class that doesn't have main
+                    GNode classBody = (GNode) n.getNode(5); // go to the ClassBody of the class that doesn't have main
                     boolean addedDefault = false; // true when a DefaultConstructorDeclaration is added
                     boolean foundConstructor = false; // true when ConstructorDeclaration found in ClassBody of class that doesn't contain main method
                     int sizeOfClassBody = classBody.size();
 
                     // loop through children of ClassBody and check if there is a ConstructorDeclaration
-                    for(int i=0;i<sizeOfClassBody;i++){
-                        if(n.getNode(5).getNode(i).getName().equals("ConstructorDeclaration")) {
+                    for (int i = 0; i < sizeOfClassBody; i++) {
+                        if (n.getNode(5).getNode(i).getName().equals("ConstructorDeclaration")) {
                             //if constructor declaration is found, mutate that one
                             foundConstructor = true;
                         }
                     }
 
                     //if constructor declaration is not found, create a default constructor declaration
-                    if(!foundConstructor){
+                    if (!foundConstructor) {
                         // make ClassBody a variable size instead of fixed so we can add children nodes
-                        if(!classBody.hasVariable()){
+                        if (!classBody.hasVariable()) {
                             classBody = GNode.ensureVariable(classBody);
-                            n.set(5,classBody);
+                            n.set(5, classBody);
                         }
 
                         // create default constructor node and make it variable size
                         GNode constructorDeclaration = GNode.create("DefaultConstructorDeclaration", n.get(1));
-                        if(!constructorDeclaration.hasVariable()){
+                        if (!constructorDeclaration.hasVariable()) {
                             constructorDeclaration = GNode.ensureVariable(constructorDeclaration);
                         }
 
-                        for(int j=0; j<sizeOfClassBody;j++){
+                        for (int j = 0; j < sizeOfClassBody; j++) {
                             // put constructor declaration after field declaration if not already added
-                            if (classBody.getNode(j).getName().equals("FieldDeclaration")){
-                                if(!addedDefault){
+                            if (classBody.getNode(j).getName().equals("FieldDeclaration")) {
+                                if (!addedDefault) {
                                     classBody.add(j + 1, constructorDeclaration);
-                                    classBody.set(j + 1,constructorDeclaration);
+                                    classBody.set(j + 1, constructorDeclaration);
                                     addedDefault = true;
                                 }
                             }
                             // if there is no FieldDeclaration and DefaultConstructor not already added then add it
-                            else{
-                                if(!classBody.getNode(0).getName().equals("DefaultConstructorDeclaration")){
+                            else {
+                                if (!classBody.getNode(0).getName().equals("DefaultConstructorDeclaration")) {
                                     classBody.add(0, constructorDeclaration);
-                                    classBody.set(0,constructorDeclaration);
+                                    classBody.set(0, constructorDeclaration);
                                 }
                             }
                         }
                     }
 
                     GNode modifiers = GNode.create("Modifiers");
-                    GNode qualifiedIdentifier = GNode.create("QualifiedIdentifier","Class");
-                    GNode type = GNode.create("Type", qualifiedIdentifier,null);
-                    GNode methodName = GNode.create("MethodName","__" + classname + "::__class");
+                    GNode qualifiedIdentifier = GNode.create("QualifiedIdentifier", "Class");
+                    GNode type = GNode.create("Type", qualifiedIdentifier, null);
+                    GNode methodName = GNode.create("MethodName", "__" + classname + "::__class");
                     GNode formalParameters = GNode.create("FormalParameters");
                     String javalang = "java.lang.";
                     GNode contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + ")), (Class)__" + "Object" + "::__class()");
 
+
                     boolean isExtended = false;
 
                     int sizeOfClassDeclaration = n.size();
-                    for(int e=0;e<sizeOfClassDeclaration;e++){
+                    for (int e = 0; e < sizeOfClassDeclaration; e++) {
                         try {
                             if (n.getNode(e) != null && n.getNode(e).getName().equals("Extension")) {
                                 isExtended = true;
                             }
-                        }
-                        catch(ClassCastException exception){
+                        } catch (ClassCastException exception) {
 
                         }
                     }
 
-                    if(isExtended) {
-                            GNode extension = (GNode) n.getNode(3);
-                            if (extension.getNode(0).getName().equals("Type")) {
-                                GNode extensiontype = (GNode) extension.getNode(0);
-                                if (extensiontype.getNode(0).getName().equals("QualifiedIdentifier")) {
-                                    String extendsFrom = extensiontype.getNode(0).getString(0);
-                                    contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + ")), (Class)__" + extendsFrom + "::__class()");
-                                }
+                    if (isExtended) {
+                        GNode extension = (GNode) n.getNode(3);
+                        if (extension.getNode(0).getName().equals("Type")) {
+                            GNode extensiontype = (GNode) extension.getNode(0);
+                            if (extensiontype.getNode(0).getName().equals("QualifiedIdentifier")) {
+                                String extendsFrom = extensiontype.getNode(0).getString(0);
+                                contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + ")), (Class)__" + extendsFrom + "::__class()");
                             }
+                        }
+
 
                     }
 
                     GNode returnstatement = GNode.create("ReturnStatement", "k");
-                    GNode block = GNode.create("Block",contents, returnstatement);
-                    GNode cInheritance = GNode.create("cInheritance", modifiers, null, type, methodName,formalParameters,null,null,block);
-                    classBody.add(0,cInheritance);
-                    String vptr = "__" + classname + "_VT" + " __" + classname +"::" + " __vtable";
+                    GNode block = GNode.create("Block", contents, returnstatement);
+                    GNode cInheritance = GNode.create("cInheritance", modifiers, null, type, methodName, formalParameters, null, null, block);
+                    classBody.add(cInheritance);
+                    String vptr = "__" + classname + "_VT" + " __" + classname + "::" + " __vtable";
                     GNode vptrString = GNode.create("vptrString", vptr);
-                    classBody.add(0,vptrString);
+                    classBody.add(vptrString);
+
 
                 }
                 visit(n);
@@ -121,7 +123,7 @@ public class MutateJavaAst extends Visitor {
                 // puts the method name into a MethodName node
                 String methodNameNode = n.getString(3);
                 GNode method = GNode.create("MethodName", methodNameNode);
-                n.set(3,method);
+                n.set(3, method);
 
                 //visit method declaration in main
                 if (n.getNode(3).getString(0).equals("main")) {
@@ -186,8 +188,8 @@ public class MutateJavaAst extends Visitor {
             public void visitFieldDeclaration(GNode n) {
                 System.out.println("In field declaration");
                 //use child to parent map for that
-                GNode parentOfField = (GNode)map.fetchParentFor(n);
-                GNode grandparentOfField = (GNode)map.fetchParentFor(parentOfField);
+                GNode parentOfField = (GNode) map.fetchParentFor(n);
+                GNode grandparentOfField = (GNode) map.fetchParentFor(parentOfField);
                 //visit field declaration in main
                 try {
                     if (grandparentOfField.getNode(3).getString(0).equals("main")) {
@@ -206,7 +208,7 @@ public class MutateJavaAst extends Visitor {
                     }
                 }
                 //If field declaration is not in main but also gives a null pointer exception when checking for main
-                catch(NullPointerException e){
+                catch (NullPointerException e) {
                     System.out.println("visiting field declarations not in main");
                 }
 
@@ -216,20 +218,20 @@ public class MutateJavaAst extends Visitor {
             public void visitExpressionStatement(GNode n) {
                 System.out.println("In expression statement");
                 //if first node of Expression statement is call expression
-                if(n.getNode(0).getName().equals("CallExpression")) {
+                if (n.getNode(0).getName().equals("CallExpression")) {
                     System.out.println("In call expression");
                     GNode callExpression = printExpressionNode(n.getNode(0).getNode(3));
                     n.set(0, callExpression);
                 }
                 //if first node of Expression statement is not call expression
                 //In test 003 and 006, first node of expression statement is Expression
-                else{
+                else {
                     //do nothing for now
                 }
                 visit(n);
             }
 
-            public void visitConstructorDeclaration(GNode n){
+            public void visitConstructorDeclaration(GNode n) {
                 String constructorname = n.getString(2);
                 System.out.println("In constructor declaration");
                 //empty modifiers
@@ -238,16 +240,16 @@ public class MutateJavaAst extends Visitor {
                 // puts the constructors name into a MethodName node
                 String methodNameNode = n.getString(2);
                 GNode method = GNode.create("MethodName", methodNameNode);
-                n.set(2,method);
+                n.set(2, method);
 
                 GNode classBody = (GNode) map.fetchParentFor(n);
                 GNode classDeclaration = (GNode) map.fetchParentFor(classBody);
 
                 String renamedConstructor = "__" + classDeclaration.getString(1) + "::" + "__" + classDeclaration.getString(1);
-                n.set(2,renamedConstructor);
+                n.set(2, renamedConstructor);
 
-                GNode block = (GNode)n.getNode(5);
-                if(!block.isEmpty()) {
+                GNode block = (GNode) n.getNode(5);
+                if (!block.isEmpty()) {
                     if (block.getNode(0).getName().equals("ExpressionStatement")) {
                         GNode expressionStatement = (GNode) block.getNode(0);
                         if (expressionStatement.getNode(0).getName().equals("Expression")) {
@@ -304,19 +306,20 @@ public class MutateJavaAst extends Visitor {
                 visit(n);
             }
 
-            public void visitDefaultConstructorDeclaration(GNode n){
+            public void visitDefaultConstructorDeclaration(GNode n) {
                 System.out.println("In default constructor declaration");
                 String className = "__" + n.getString(0);
                 String vptr = "__vptr(&__vtable)";
-                n.set(0,className);
+                n.set(0, className);
                 n.add(className);
                 n.add(vptr);
                 visit(n);
             }
 
             ChildToParentMap m;
+
             public void visitBlock(GNode n) {
-                if (!n.isEmpty()){
+                if (!n.isEmpty()) {
                     if (n.getNode(0).hasName("FieldDeclaration")) {
                         m = new ChildToParentMap(n);
                     }
@@ -352,8 +355,7 @@ public class MutateJavaAst extends Visitor {
                             }
                         }
                     }
-                }
-                catch (NullPointerException e){
+                } catch (NullPointerException e) {
 
                 }
                 visit(n);
@@ -378,24 +380,26 @@ public class MutateJavaAst extends Visitor {
 
     /**
      * Given the argument to be printed, returns a CallExpression node reformatted to reflect how things are printed in C++.
+     *
      * @param o the argument node describing what needs to be printed
      * @return node containing the information for printing
      */
     private static GNode printExpressionNode(Object o) {
-        GNode primaryIdentifier = GNode.create("PrimaryIdentifier","std");
-        GNode selectionExpressionStart = GNode.create("SelectionExpression",primaryIdentifier,"cout");
-        GNode selectionExpressionEnd = GNode.create("SelectionExpression",primaryIdentifier,"endl");
-        GNode printLine = NodeUtil.deepCopyNode((GNode)o);
-        GNode callExpression = GNode.create("CallExpression",selectionExpressionStart,printLine,selectionExpressionEnd);
+        GNode primaryIdentifier = GNode.create("PrimaryIdentifier", "std");
+        GNode selectionExpressionStart = GNode.create("SelectionExpression", primaryIdentifier, "cout");
+        GNode selectionExpressionEnd = GNode.create("SelectionExpression", primaryIdentifier, "endl");
+        GNode printLine = NodeUtil.deepCopyNode((GNode) o);
+        GNode callExpression = GNode.create("CallExpression", selectionExpressionStart, printLine, selectionExpressionEnd);
         return callExpression;
     }
 
     /**
      * Given a return type as a string, a node housing the return type of a method is returned.
+     *
      * @param str the return type of a method as a String
      * @return a node housing the return type of a method
      */
-    private static GNode methodType(String str){
+    private static GNode methodType(String str) {
         GNode qualifiedIdentifier = GNode.create("QualifiedIdentifier", str);
         GNode type = GNode.create("Type", qualifiedIdentifier);
         return type;
@@ -403,11 +407,13 @@ public class MutateJavaAst extends Visitor {
 
     /**
      * Returns an empty node given the name of the empty node.
+     *
      * @param str name of the node
      * @return and empty (childless) node with the name given by str
      */
-    private static GNode emptyNode(String str){
+    private static GNode emptyNode(String str) {
         GNode empty = GNode.create(str);
         return empty;
     }
 }
+

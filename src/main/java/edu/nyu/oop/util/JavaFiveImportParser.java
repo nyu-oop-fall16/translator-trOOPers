@@ -11,6 +11,8 @@ import java.util.*;
 
 import java.util.ArrayList;
 
+import java.util.ArrayList;
+
 /**
  * This is a utility class which will load the source files for anything referenced by the primary source.
  * Note that it does *not* do this recursively. In other words, it will not return nodes representing the

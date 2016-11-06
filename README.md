@@ -16,7 +16,7 @@ In order to run the translator, the user must call sbt from the terminal in the 
 
 In sbt do:
   
-  'runxtc -runTranslator src/test/java/inputs/testxxx/Testxxx.java'
+  `runxtc -runTranslator src/test/java/inputs/testxxx/Testxxx.java`
   
 Replace the xxx in "testxxx" and "Testxxx.java" with the number of the Java class file you want to run. (The "runTranslator" tag only runs fully for tests 000 to 005).
 
@@ -24,7 +24,7 @@ The other possible commands are "printJavaAst", "printJavaCode", "printJavaImpor
 
 To run unit tests, in sbt do:
 
-  'runxtc -generateListGNodes src/test/java/inputs/testxxx/Testxxx.java'
+  `runxtc -generateListGNodes src/test/java/inputs/testxxx/Testxxx.java`
   <br> etc.
 
 The translator supports inheritance and dynamic dispatch, Java package imports, and standard Java field and method declarations. 

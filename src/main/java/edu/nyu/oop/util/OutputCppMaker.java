@@ -16,8 +16,8 @@ public class OutputCppMaker extends Visitor {
     private static Logger logger = org.slf4j.LoggerFactory.getLogger(JavaFiveImportParser.class);
 
     // holds what needs to be printed to output file
-    private ToBePrinted outputPrint = new ToBePrinted();
     private List<String> content = new ArrayList<String>();
+
     // Constructor - uses super class's constructor
     public OutputCppMaker() {}
 
@@ -32,8 +32,6 @@ public class OutputCppMaker extends Visitor {
     // visit qualified identifier nodes - for testing purposes
     public void visitPackageDeclaration(GNode n) {
         GNode namespaces = (GNode) n.getNode(1);
-//        String name = "namespace ";
-//        String openBracket = "{\n";
         if(namespaces.size()==2) {
             content.add("namespace");
             content.add(namespaces.getString(0));
@@ -47,16 +45,15 @@ public class OutputCppMaker extends Visitor {
     }
 
     public void visitClassDeclaration(GNode n) {
-        //only traverse not main class for output,cpp
-//        if(!n.getString(1).startsWith("T")){
+        //only traverse not main class for output.cpp
         map = new ChildToParentMap(n);
         if(n.getString(1).startsWith("Test")) {
 
         } else {
             visit(n);
         }
-//        }
     }
+
     public void visitConstructorDeclaration(GNode n) {
         try {
             content.add(n.getString(2));
@@ -213,12 +210,6 @@ public class OutputCppMaker extends Visitor {
         content.add(n.getString(0));
         visit(n);
     }
-    // add output string and it's index to list of IndexOrderedOutputs
-    // ************Maybe add syntax here/ the open and closing braces?********
-    private void outputPrintString(int index, String str) {
-        OutputCppMaker.IndexOrderedOutputs out = new OutputCppMaker.IndexOrderedOutputs(index, str);
-        outputPrint.addIndexOrderedOutput(out);
-    }
 
     // prints given string to output.cpp
     public void printToOutputCpp(String s) {
@@ -255,74 +246,19 @@ public class OutputCppMaker extends Visitor {
         super.dispatch(n);
         content.add("}\n");
         content.add("}\n");
-        String output="";
-        for(String s:content) {
-            output+=s;
-            output+=" ";
+        String output = "";
+        for (String s : content) {
+            output += s;
+            output += " ";
         }
 
-        if(output.endsWith(" ")) {
-            output=output.substring(0,output.length()-1);
+        if (output.endsWith(" ")) {
+            output = output.substring(0, output.length() - 1);
         }
 
-//        System.out.println(content.toString());
+        // print the output to console too
         System.out.println(output);
+
         return output;
     }
-
-
-    // *****************put in separate class file?************
-    // An instance of this class will be mutated as the Ast is traversed.
-    public static class ToBePrinted {
-
-        // list of IndexOrderedOutputto be printed
-        private List<IndexOrderedOutputs> implementationCode = new ArrayList<IndexOrderedOutputs>();
-
-        // add to list of IndexOrderedOutput
-        public void addIndexOrderedOutput(IndexOrderedOutputs s) {
-            this.implementationCode.add(s);
-        }
-
-        // get list of IndexOrderedOutput
-        public List<IndexOrderedOutputs> getList() {
-            return this.implementationCode;
-        }
-
-        // insertion sort by index
-        public List<IndexOrderedOutputs> sortByIndex(List<IndexOrderedOutputs> unordered) {
-            // sort using insertion sort
-            for (int i = 1; i < unordered.size(); i++) {
-                for (int j = i; j > 0; j--) {
-                    if (unordered.get(j).getIndex() < unordered.get(j - 1).getIndex()) {
-                        IndexOrderedOutputs temp = unordered.remove(j);
-                        unordered.add(j - 1, temp);
-                    }
-                }
-            }
-            return unordered;
-        }
-    }
-
-    // get the index of the node of the string (string is a child of a parent - the index is i and string is the ith child)
-    public class IndexOrderedOutputs {
-        private int index;
-        private String outputString;
-
-        // constructor
-        public IndexOrderedOutputs(int index, String outputString) {
-            this.index = index;
-            this.outputString = outputString;
-        }
-
-        // get inddex
-        public int getIndex() {
-            return this.index;
-        }
-
-        // get output string
-        public String getOutputString() {
-            return this.outputString;
-        }
-    }
-
 }

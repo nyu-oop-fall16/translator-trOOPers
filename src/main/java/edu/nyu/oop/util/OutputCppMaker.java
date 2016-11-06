@@ -61,10 +61,18 @@ public class OutputCppMaker extends Visitor {
         try {
             content.add(n.getString(2));
             content.add("(");
-            GNode formalParameter = (GNode) n.getNode(3).getNode(0);
-            GNode qualifiedIdentifier = (GNode) n.getNode(3).getNode(0).getNode(1).getNode(0);
-            content.add(qualifiedIdentifier.getString(0));
-            content.add(formalParameter.getString(3));
+            GNode formalParameters = (GNode)n.getNode(3);
+            int sizeOfFormalParameters = formalParameters.size();
+            for(int i=0; i<sizeOfFormalParameters; i++) {
+                GNode formalParameter = (GNode) formalParameters.getNode(i);
+                GNode qualifiedIdentifier = (GNode) formalParameter.getNode(1).getNode(0);
+                content.add(qualifiedIdentifier.getString(0));
+                content.add(formalParameter.getString(3));
+                content.add(",");
+            }
+            if(content.get(content.size()-1).equals(",")) {
+                content.remove(content.size()-1);
+            }
             content.add(")");
             content.add(":");
             GNode block = (GNode) n.getNode(5);
@@ -99,9 +107,18 @@ public class OutputCppMaker extends Visitor {
     }
 
     public void visitQualifiedIdentifier(GNode n) {
-//        GNode parent = (GNode)map.fetchParentFor(n);
-        if(n.size()==1) {
-            content.add(n.getString(0));
+        try {
+            GNode type = (GNode) map.fetchParentFor(n);
+            GNode fieldDeclaration = (GNode) map.fetchParentFor(type);
+            if (!fieldDeclaration.getName().equals("FieldDeclaration") && !fieldDeclaration.getName().equals("Extension")) {
+                if (n.size() == 1) {
+                    content.add(n.getString(0));
+                }
+            }
+        } catch(Exception e) {
+            if (n.size() == 1) {
+                content.add(n.getString(0));
+            }
         }
         visit(n);
     }
@@ -114,14 +131,17 @@ public class OutputCppMaker extends Visitor {
     }
 
     public void visitFormalParameters(GNode n) {
-        content.add("(");
-        try {
-            content.add(n.getString(0));
-        } catch (Exception e) {
+        GNode constructorDeclaration = (GNode) map.fetchParentFor(n);
+        if(!constructorDeclaration.getName().equals("ConstructorDeclaration")) {
+            content.add("(");
+            try {
+                content.add(n.getString(0));
+            } catch (Exception e) {
 
+            }
+            visit(n);
+            content.add(")");
         }
-        visit(n);
-        content.add(")");
 
     }
 

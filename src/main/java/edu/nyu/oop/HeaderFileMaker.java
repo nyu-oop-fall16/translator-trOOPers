@@ -86,11 +86,16 @@ public class HeaderFileMaker extends Visitor {
     public void visitFieldDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         for (int i = 0; i < n.size(); i++) {
-            hcp.addToDL(n.getString(i));
-            if (i < n.size()-1) {
+            Node fieldInfo = n.getNode(i);
+            for (int j = 0; j < fieldInfo.size(); j++) {
+                if (! fieldInfo.getString(j).equals("private")) {
+                    hcp.addToDL(fieldInfo.getString(j));
+                }
+            }
+            if (i < n.size()-1 && i != 0) {
                 hcp.addToDL(" ");
             }
-            else {
+            else if (i != 0){
                 hcp.addToDL(";\n");
             }
         }

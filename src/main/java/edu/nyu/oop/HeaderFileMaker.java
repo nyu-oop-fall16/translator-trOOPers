@@ -88,7 +88,7 @@ public class HeaderFileMaker extends Visitor {
         for (int i = 0; i < n.size(); i++) {
             Node fieldInfo = n.getNode(i);
             for (int j = 0; j < fieldInfo.size(); j++) {
-                if (! fieldInfo.getString(j).equals("private")) {
+                if (!fieldInfo.isEmpty() && !fieldInfo.getString(j).equals("private")) {
                     hcp.addToDL(fieldInfo.getString(j));
                 }
             }

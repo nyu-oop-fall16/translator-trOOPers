@@ -19,7 +19,7 @@ public class ClassInfo {
     private String name;
     private String parent;
     private Node constructorParams = GNode.create("ConstructorParameters");
-    private List<GNode> fields = new ArrayList<GNode>();
+    private ArrayList<GNode> fields = new ArrayList<GNode>();
     private ArrayList<MethodInfo> methods = new ArrayList<MethodInfo>();
 
     //Set and get methods for the information held within an headerClass object.
@@ -34,7 +34,7 @@ public class ClassInfo {
     public void setParent(String p) { parent = p;}
     public String getParent() {return parent;}
 
-    public void addFields(GNode modifiers, String type, String name, String initialization) {
+    public void addField(GNode modifiers, String type, String name, String initialization) {
         GNode field = GNode.create("FieldDeclaration");
 
         field.add(modifiers);
@@ -51,8 +51,10 @@ public class ClassInfo {
         fieldInitialization.add(initialization);
         field.add(fieldInitialization);
 
+        fields.add(field);
+
     }
-    public List<GNode> getFields() {
+    public ArrayList<GNode> getFields() {
         return fields;
     }
 

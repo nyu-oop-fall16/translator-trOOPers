@@ -63,7 +63,7 @@ public class HeaderASTMaker {
 
         fields.add(fieldVPTR);
         fields.add(fieldVTable);
-
+        System.out.println(c.getFields());
         for (GNode f: c.getFields()) {
             GNode fieldDec = GNode.create("FieldDeclaration");
             fieldDec = f;

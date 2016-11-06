@@ -50,6 +50,9 @@ public class Boot extends Tool {
                 bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
                 bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
                 bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.");
+                bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
+                bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.");
+
     }
 
     @Override
@@ -147,6 +150,30 @@ public class Boot extends Tool {
             maker.runVisitor(rootNode);
         }
 
+        
+        if (runtime.test("printMutatedAst")) {
+            // make a copy of the Java Ast of the test class and mutate it to C++ Ast
+            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
+            mutatedAst = MutateJavaAst.mutate(nodeCopy);
+
+            // check the Ast in console
+            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
+        }
+
+
+        // passes the mutated Ast to be used to create the implementation files
+        if (runtime.test("printImplementationFiles")) {
+            OutputCppMaker outputMaker = new OutputCppMaker();
+            // get the list of strings to be printed after traversing ast
+            String outputContent=outputMaker.getOutputToBePrinted(mutatedAst);
+            outputMaker.printToOutputCpp(outputContent);
+
+            MainCppMaker mainMaker = new MainCppMaker();
+            String mainContent=mainMaker.getMainToBePrinted(mutatedAst);
+            mainMaker.printToMainCpp(mainContent);
+        }
+    }
+        
     }
 
     /**

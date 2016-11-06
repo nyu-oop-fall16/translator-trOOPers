@@ -22,7 +22,7 @@ Replace the xxx in "testxxx" and "Testxxx.java" with the number of the Java clas
 
 The other possible commands are "printJavaAst", "printJavaCode", "printJavaImportCode", "generateListGnodes", "printHeaderAst", "printHeaderFile", "printMutatedAst", and "printImplementationFiles".
 
-To run unit tests, in sbt do:
+To run unit tests, in sbt do any of the following:
 
 ```
  runxtc -generateListGNodes src/test/java/inputs/testxxx/Testxxx.java
@@ -31,6 +31,8 @@ To run unit tests, in sbt do:
  runxtc -generateListGNodes -printMutatedAst src/test/java/inputs/testxxx/Testxxx.java
  runxtc -generateListGNodes -printMutatedAst -printImplementationFiles src/test/java/inputs/testxxx/Testxxx.java
 ```
+
+In order, the tests are for Phase 1, Phase 2, Phase 3, Phase 4, and Phase 5.
 
 The translator supports inheritance and dynamic dispatch, Java package imports, and standard Java field and method declarations. 
 Any files containing a main method must encapsulate that method in a class that contains nothing else. The name of this class must be the same as the name of the file.

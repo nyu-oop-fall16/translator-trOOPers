@@ -1,21 +1,22 @@
 package edu.nyu.oop.util;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-
+import org.slf4j.Logger;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-import org.slf4j.Logger;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OutputCppMaker extends Visitor{
     private static Logger logger = org.slf4j.LoggerFactory.getLogger(JavaFiveImportParser.class);
 
     // holds what needs to be printed to output file
     private ToBePrinted outputPrint = new ToBePrinted();
-
+    private List<String> content = new ArrayList<String>();
     // Constructor - uses super class's constructor
     public OutputCppMaker(){}
 
@@ -26,6 +27,105 @@ public class OutputCppMaker extends Visitor{
         }
     }
 
+    // relative to CompilationUnit
+    // visit qualified identifier nodes - for testing purposes
+    public void visitPackageDeclaration(GNode n){
+        GNode namespaces = (GNode) n.getNode(1);
+//        String name = "namespace ";
+//        String openBracket = "{\n";
+        if(namespaces.size()==2) {
+            content.add("namespace");
+            content.add(namespaces.getString(0));
+            content.add("{\n");
+            content.add("namespace");
+            content.add(namespaces.getString(1));
+            content.add("{\n");
+            visit(n);
+        }
+        visit(n);
+    }
+
+    public void visitClassDeclaration(GNode n){
+        //only traverse not main class for output,cpp
+//        if(!n.getString(1).startsWith("T")){
+            visit(n);
+//        }
+    }
+
+    public void visitDefaultConstructorDeclaration(GNode n){
+        content.add(n.getString(0));
+        content.add("::");
+        content.add(n.getString(1));
+        content.add("():");
+        content.add(n.getString(2));
+        content.add("{");
+        content.add("}");
+        visit(n);
+    }
+
+    public void MethodDeclaration(GNode n){
+        visit(n);
+    }
+
+    public void visitQualifiedIdentifier(GNode n) {
+        if(n.size()==1) {
+            content.add(n.getString(0));
+        }
+        visit(n);
+    }
+
+    public void visitMethodName(GNode n){
+        content.add(n.getString(0));
+
+        visit(n);
+
+    }
+
+    public void visitFormalParameters(GNode n){
+        content.add("(");
+        try {
+            content.add(n.getString(0));
+        }catch (Exception e){
+
+        }
+        visit(n);
+        content.add(")");
+
+    }
+
+    public void visitBlock(GNode n){
+        content.add("(\n");
+        visit(n);
+        content.add(")\n");
+    }
+
+    public void visitReturnStatement(GNode n){
+        content.add("return");
+        visit(n);
+        content.add(";");
+
+    }
+
+    public void visitNewClassExpression(GNode n){
+        content.add("new");
+        visit(n);
+    }
+
+    public void visitcString(GNode n){
+        content.add(n.getString(0));
+        visit(n);
+    }
+
+    public void visitArguments(GNode n){
+        content.add("(");
+        try{
+            content.add(n.getString(0));
+        }catch (Exception e){
+        }
+        visit(n);
+        content.add(")");
+    }
+
     // add output string and it's index to list of IndexOrderedOutputs
     // ************Maybe add syntax here/ the open and closing braces?********
     private void outputPrintString(int index, String str){
@@ -33,34 +133,13 @@ public class OutputCppMaker extends Visitor{
         outputPrint.addIndexOrderedOutput(out);
     }
 
-    // relative to CompilationUnit
-    // visit qualified identifier nodes - for testing purposes
-    public void visitPackageDeclaration(GNode n){
-        GNode namespaces = (GNode) n.getNode(1);
-        String name = "namespace ";
-        String openBracket = "{\n";
-
-        outputPrintString(1,name + namespaces.getString(0) + openBracket);
-        outputPrintString(1,name + namespaces.getString(1) + openBracket);
-        visit(n);
-    }
-
     // prints given string to output.cpp
-    public void printToOutputCpp(ToBePrinted printThis) {
+    public void printToOutputCpp(String s) {
         // Create a printwriter for output.cpp file
         File output = loadOutputCpp();
-        PrintWriter outputWriter = getWriter(output);
-
-        // sorts the impelementation code by index (print according to the order they appear in ast)
-        printThis.sortByIndex(printThis.implementationCode);
-
-        // go through the string list and print to output file
-        for(int i = 0; i < printThis.getList().size(); i++){
-            outputWriter.print(printThis.getList().get(i).getOutputString() + " ");
-        }
-
-        // close writer when done
-        outputWriter.close();
+        PrintWriter cppWriter = getWriter(output);
+        cppWriter.print(s);
+        cppWriter.close();
     }
 
     // returns a printwriter given a file to write to -- could put in printToOutputCpp method
@@ -82,9 +161,25 @@ public class OutputCppMaker extends Visitor{
     }
 
     // dispatch through the mutated Ast and returns the list of strings being generated/added to in each visit
-    public ToBePrinted getOutputToBePrinted(GNode n){
+    public String getOutputToBePrinted(GNode n){
+        content.add("#include output.h\n");
+        content.add("#include javalang.h\n");
         super.dispatch(n);
-        return outputPrint;
+        content.add("}\n");
+        content.add("}\n");
+        String output="";
+        for(String s:content) {
+            output+=s;
+            output+=" ";
+        }
+
+        if(output.endsWith(" ")){
+            output=output.substring(0,output.length()-1);
+        }
+
+//        System.out.println(content.toString());
+        System.out.println(output);
+        return output;
     }
 
 

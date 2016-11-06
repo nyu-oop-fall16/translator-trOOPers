@@ -135,7 +135,7 @@ public class MainCppMaker extends Visitor {
 //            System.out.println("node3"+n.getNode(3).toString());
 
 //        } else {
-            visit(n);
+
 //        }
 //        if (n.size() > 3) {
 //            Node c4 = n.getNode(3);
@@ -144,6 +144,7 @@ public class MainCppMaker extends Visitor {
 //                content.add(")");
 //            }
 //        }
+        visit(n);
         try {
             String check=n.getNode(2).getString(0);
             if (check.equals("toString")||check.equals("getFld")) {

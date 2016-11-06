@@ -3,24 +3,23 @@ CompilationUnit(
     null,
     QualifiedIdentifier(
       "inputs",
-      "test005"
+      "test002"
     )
   ),
   ClassDeclaration(
     Modifiers(),
-    ClassName(
-      "A"
-    ),
+    "A",
     null,
     null,
     null,
     ClassBody(
+      DefaultConstructorDeclaration(
+        "__A",
+        "__A",
+        "__vptr(&__vtable)"
+      ),
       MethodDeclaration(
-        Modifiers(
-          Modifier(
-            "public"
-          )
-        ),
+        Modifiers(),
         null,
         Type(
           QualifiedIdentifier(
@@ -29,75 +28,62 @@ CompilationUnit(
           null
         ),
         MethodName(
-          "toString"
+          "__A::toString"
         ),
-        FormalParameters(),
+        FormalParameters(
+          "A __this"
+        ),
         null,
         null,
         Block(
           ReturnStatement(
-            StringLiteral(
-              "\"A\""
+            NewClassExpression(
+              cString(
+                "__String",
+                Arguments(
+                  "A"
+                )
+              )
             )
           )
         )
-      )
-    )
-  ),
-  ClassDeclaration(
-    Modifiers(),
-    ClassName(
-      "B"
-    ),
-    null,
-    Extension(
-      Type(
-        QualifiedIdentifier(
-          "A"
-        ),
-        null
-      )
-    ),
-    null,
-    ClassBody(
-      MethodDeclaration(
-        Modifiers(
-          Modifier(
-            "public"
-          )
-        ),
+      ),
+      cInheritance(
+        Modifiers(),
         null,
         Type(
           QualifiedIdentifier(
-            "String"
+            "Class"
           ),
           null
         ),
         MethodName(
-          "toString"
+          "__A::__class"
         ),
         FormalParameters(),
         null,
         null,
         Block(
+          Contents(
+            "static Class k = new __Class(__rt::literal(java.lang.A), (Class)__Object::__class()"
+          ),
           ReturnStatement(
-            StringLiteral(
-              "\"B\""
-            )
+            "k"
           )
         )
+      ),
+      vptrString(
+        "__A_VT __A:: __vtable"
       )
     )
   ),
   ClassDeclaration(
     Modifiers(
       Modifier(
-        "namespace"
+        "public"
       )
     ),
-    ClassName(
-      "Test005"
-    ),
+    "Test002",
     null,
     null,
     null,
@@ -121,37 +107,13 @@ CompilationUnit(
             Modifiers(),
             Type(
               QualifiedIdentifier(
-                "B"
-              ),
-              null
-            ),
-            Declarators(
-              Declarator(
-                "b",
-                null,
-                NewClassExpression(
-                  null,
-                  null,
-                  QualifiedIdentifier(
-                    "__B"
-                  ),
-                  Arguments(),
-                  null
-                )
-              )
-            )
-          ),
-          FieldDeclaration(
-            Modifiers(),
-            Type(
-              QualifiedIdentifier(
                 "A"
               ),
               null
             ),
             Declarators(
               Declarator(
-                "a1",
+                "a",
                 null,
                 NewClassExpression(
                   null,
@@ -169,16 +131,16 @@ CompilationUnit(
             Modifiers(),
             Type(
               QualifiedIdentifier(
-                "A"
+                "Object"
               ),
               null
             ),
             Declarators(
               Declarator(
-                "a2",
-                null,
+                "o",
+                "(Object)",
                 PrimaryIdentifier(
-                  "b"
+                  "a"
                 )
               )
             )
@@ -194,33 +156,7 @@ CompilationUnit(
               Arguments(
                 CallExpression(
                   PrimaryIdentifier(
-                    "a1"
-                  ),
-                  null,
-                  "toString",
-                  Arguments()
-                )
-              ),
-              SelectionExpression(
-                PrimaryIdentifier(
-                  "std"
-                ),
-                "endl"
-              )
-            )
-          ),
-          ExpressionStatement(
-            CallExpression(
-              SelectionExpression(
-                PrimaryIdentifier(
-                  "std"
-                ),
-                "cout"
-              ),
-              Arguments(
-                CallExpression(
-                  PrimaryIdentifier(
-                    "a2"
+                    "o"
                   ),
                   null,
                   "toString",

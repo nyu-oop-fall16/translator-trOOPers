@@ -142,22 +142,27 @@ public class Boot extends Tool {
 //
 //        // passes the mutated Ast to be used to create the implementation files
         if(runtime.test("phaseFive")){
+            GNode nodeCopy = NodeUtil.deepCopyNode((GNode)n);
+            mutatedAst = MutateJavaAst.mutate(nodeCopy);
             // Traverse mutated Ast and print to output.cpp
-//            OutputCppMaker outputMaker = new OutputCppMaker();
+            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
+            OutputCppMaker outputMaker = new OutputCppMaker();
 //            // get the list of strings to be printed after traversing ast
 //            OutputCppMaker.ToBePrinted outputPrint = outputMaker.getOutputToBePrinted(mutatedAst);
 //            outputMaker.printToOutputCpp(outputPrint); // prints to output.cpp file
-            GNode nodeCopy = NodeUtil.deepCopyNode((GNode)n);
-            mutatedAst = MutateJavaAst.mutate(nodeCopy);
+            String outputcontent=outputMaker.getOutputToBePrinted((GNode) n);
+            outputMaker.printToOutputCpp(outputcontent);
+
+
 
             // check the Ast in console
-            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
+//            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
             // Traverse mutated Ast and print to main.cpp
-            MainCppMaker mainMaker = new MainCppMaker();
+//            MainCppMaker mainMaker = new MainCppMaker();
             // get the list of strings to be printed after traversing ast
-            GNode root=(GNode) mutatedAst.getNode(mutatedAst.size()-1);
-            String maincontent=mainMaker.getMainToBePrinted(root);
-            mainMaker.printToMainCpp(maincontent);
+//            GNode root=(GNode) mutatedAst.getNode(mutatedAst.size()-1);
+//            String maincontent=mainMaker.getMainToBePrinted(root);
+//            mainMaker.printToMainCpp(maincontent);
 //            MainCppMaker.ToBePrinted mainPrint = mainMaker.getMainToBePrinted(root);
 //            mainMaker.printToMainCpp(mainPrint); // prints to main.cpp file
 

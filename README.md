@@ -25,7 +25,7 @@ The other possible commands are "printJavaAst", "printJavaCode", "printJavaImpor
 To run unit tests, in sbt do:
 
   runxtc -generateListGNodes src/test/java/inputs/testxxx/Testxxx.java
-  etc.
+  \n etc.
 
 The translator supports inheritance and dynamic dispatch, Java package imports, and standard Java field and method declarations. 
 Any files containing a main method must encapsulate that method in a class that contains nothing else. The name of this class must be the same as the name of the file.

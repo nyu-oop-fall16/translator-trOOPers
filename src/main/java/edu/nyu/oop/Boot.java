@@ -49,7 +49,7 @@ public class Boot extends Tool {
                 bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
                 bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
                 bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
-                bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.");
+                bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
                 bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
                 bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
                 bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.");
@@ -79,6 +79,9 @@ public class Boot extends Tool {
     public Node parse(Reader in, File file) throws IOException, ParseException {
         return NodeUtil.parseJavaFile(file);
     }
+
+    private List<GNode> listGNodes = new ArrayList<GNode>();
+    private GNode mutatedAst;
 
     @Override
     public void process(Node n) {
@@ -145,6 +148,7 @@ public class Boot extends Tool {
 
         
         if (runtime.test("printMutatedAst")) {
+
             // make a copy of the Java Ast of the test class and mutate it to C++ Ast
             GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
             mutatedAst = MutateJavaAst.mutate(nodeCopy);
@@ -156,6 +160,10 @@ public class Boot extends Tool {
 
         // passes the mutated Ast to be used to create the implementation files
         if (runtime.test("printImplementationFiles")) {
+            // make a copy of the Java Ast of the test class and mutate it to C++ Ast
+            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
+            mutatedAst = MutateJavaAst.mutate(nodeCopy);
+
             OutputCppMaker outputMaker = new OutputCppMaker();
             // get the list of strings to be printed after traversing ast
             String outputContent=outputMaker.getOutputToBePrinted(mutatedAst);
@@ -208,9 +216,7 @@ public class Boot extends Tool {
             mainMaker.printToMainCpp(mainContent);
         }
     }
-        
-    }
-
+       
     /**
      * Run Boot with the specified command line arguments.
      *

@@ -315,8 +315,6 @@ public class MutateJavaAst extends Visitor {
                         }
                     }
                 }
-
-
                 visit(n);
             }
 
@@ -374,21 +372,14 @@ public class MutateJavaAst extends Visitor {
                                         }
                                     }
                                 }
-//                                String classString = newClassExpression.getNode(3).getNode(0).getString(0);
-//                                String cppString = "__String";
-//                                GNode newArguments = GNode.create("Arguments", "(" + classString + ")");
-//                                GNode cString = GNode.create("cString", cppString, newArguments);
-//                                GNode NewClassExpression = GNode.create("NewClassExpression", cString);
-//                                arguments.set(0, NewClassExpression);
                             }
                         }
                     }
 
-                }
-
-                catch(Exception e) {
+                } catch(Exception e) {
 
                 }
+
                 try {
                     Node declaratorsType = n.getNode(0).getNode(2);
                     if (declaratorsType.hasName("PrimaryIdentifier")) {
@@ -432,8 +423,6 @@ public class MutateJavaAst extends Visitor {
 
         return n;
     }
-
-    // Below are methods to help shorten above code
 
     /**
      * Given the argument to be printed, returns a CallExpression node reformatted to reflect how things are printed in C++.

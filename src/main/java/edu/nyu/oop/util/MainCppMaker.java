@@ -11,52 +11,55 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Takes a GNode of the mutated Java Ast representing the C++ version and traverses it to add to a list of strings to be printed to main.cpp file.
+ */
 public class MainCppMaker extends Visitor {
-    ChildToParentMap map;
     private static Logger logger = org.slf4j.LoggerFactory.getLogger(JavaFiveImportParser.class);
 
     // holds what needs to be printed to main file
-    private ToBePrinted mainPrint = new ToBePrinted();
     private List<String> content = new ArrayList<String>();
-    boolean additionalParameters = false;
-    // constructor - uses super class's constructor
-    public MainCppMaker() {}
 
+    // holds the map of children to a given parent node
+    ChildToParentMap map;
+
+    // **********************************
+    boolean additionalParameters = false;
+    // **********************************
+
+    // visit all the nodes given a root node
     public void visit(Node n) {
         for (Object o : n) {
             if (o instanceof Node) dispatch((Node) o);
         }
     }
 
-    //adding namespace inputs::testxxx
+    //adding namespace inputs::testxxx from package inputs.testxxx
     public void visitPackageDeclaration(GNode n) {
         if(n.getNode(1).getName().equals("QualifiedIdentifier")) {
             GNode qualifiedIdentifier = (GNode)n.getNode(1);
             content.add(qualifiedIdentifier.getString(0) + "::" + qualifiedIdentifier.getString(1) + ";\n");
         }
-        visit(n);
-    }
-//    public void visitQualifiedIdentifier(GNode n) {
-//        content.add(n.getString(0));
 //        visit(n);
-//    }
-
-    public void visitMethodDeclaration(GNode n) {
-        String methodname = n.getNode(3).getString(0); // get "main" (name of the method)
-        assert methodname=="main";
-//        if (main.equals("main")) {
-//            mainPrint.addString(3, main); // 3 - method name is the 4th child of MethodDeclaration
-//        }
-        visit(n);
     }
 
+    // constrain visit to main method node - all the information for main method should be within main's method declaration node
+    public void visitMethodDeclaration(GNode n) {
+        String methodName = n.getNode(3).getString(0); // get "main" (name of the method)
+        if (methodName.equals("main")) {
+            visit(n);
+        }
+    }
+
+    // add the main method name "main" to the list of strings to be written to main.cpp file
     public void visitMethodName(GNode n) {
         if(n.getString(0).equals("main")) {
             content.add(n.getString(0));
         }
-        visit(n);
     }
 
+    // visit the formal parameters of main method and surround them with parentheses in list of strings
+    // in between adding the open and closed parentheses, visit the children of formal parameters and add to the list of strings
     public void visitFormalParameters(GNode n) {
         GNode parentOfFormalParameters = (GNode)map.fetchParentFor(n);
         if (parentOfFormalParameters.getName().equals("MethodDeclaration")) {
@@ -78,14 +81,14 @@ public class MainCppMaker extends Visitor {
                 }
             }
         }
-
-        //visit(n);
     }
 
+    // visit the block of main method and surround them with braces in list of strings
+    // in between adding the open and closed brace, visit the children of block and add to the list of strings for implementation of main
     public void visitBlock(GNode n) {
-        GNode parentOfFormalParameters = (GNode)map.fetchParentFor(n);
-        if (parentOfFormalParameters.getName().equals("MethodDeclaration")) {
-            GNode methodDeclaration = parentOfFormalParameters;
+        GNode parentOfBlock = (GNode)map.fetchParentFor(n);
+        if (parentOfBlock.getName().equals("MethodDeclaration")) {
+            GNode methodDeclaration = parentOfBlock;
             int sizeOfMethodD = methodDeclaration.size();
             for (int i = 0; i < sizeOfMethodD; i++) {
                 try {
@@ -103,36 +106,40 @@ public class MainCppMaker extends Visitor {
                 }
             }
         }
-
     }
 
+    // For fields, get the data type of the field and add to list of strings
+    // visit node to get the rest of the information of that field declaration before adding semicolon to list of strings (end of declaration)
     public void visitFieldDeclaration(GNode n) {
         if(n.getNode(0).isEmpty()) {
             if(n.getNode(1).getName().equals("Type")) {
                 GNode type = (GNode)n.getNode(1);
                 if(type.getNode(0).getName().equals("QualifiedIdentifier")) {
                     GNode qualifiedIdentifier = (GNode)type.getNode(0);
-                    String classtype = qualifiedIdentifier.getString(0);
-                    content.add(classtype);
+                    String classType = qualifiedIdentifier.getString(0);
+                    content.add(classType);
                     visit(n);
                     content.add(";");
                 }
             }
         }
-        //visit(n); <<to prevent double
-        int sizeOfList = content.size();
 
+        // this takes care of any extra semicolons being added to the list
+        int sizeOfList = content.size();
         if(!content.get(sizeOfList-1).endsWith(";\n") && !content.get(sizeOfList-1).endsWith(";")) { //before was "endswith ";\n"
             content.add(";");
         }
-
     }
 
+    // visit Expression statement and run a visit on that node to let the other visit methods get the info needed and end it with a semicolon
     public void visitExpressionStatement(GNode n) {
         visit(n);
         content.add(";");
     }
 
+    // for print statements in c++ do the format std::cout << arguments << std::endl;
+    // check for "cout" and "endl" and call visit in the appropriate order to get "std" added to string list
+    // if it's not for printing, call visit and handle appropriately with other visitXXX methods
     public void visitSelectionExpression(GNode n) {
         String s = "";
         s = n.getString(1);
@@ -147,11 +154,11 @@ public class MainCppMaker extends Visitor {
             content.add("::" + s);
 
         } else {
-            System.out.println("visitSelectionExpression getString1 error");
             visit(n);
         }
     }
 
+    // add instantiations to list of strings (i.e A a = new __A() or Object o = (Object) a etc..)
     public void visitDeclarator(GNode n) {
         GNode declarators = (GNode)map.fetchParentFor(n);
         GNode fieldDeclaration = (GNode)map.fetchParentFor(declarators);
@@ -159,7 +166,6 @@ public class MainCppMaker extends Visitor {
         if(check.getName().equals("Block")) {
             content.add(n.getString(0));
             content.add("=");
-
             if (n.getString(1) != null) {
                 content.add(n.getString(1));
             }
@@ -176,6 +182,8 @@ public class MainCppMaker extends Visitor {
         visit(n);
     }
 
+    // get any arguments and surround with parentheses in the list of strings
+    // handle StringLiteral and newCStrings arguments differently
     public void visitArguments(GNode n) {
         if (!n.isEmpty()) {
             try {
@@ -190,13 +198,10 @@ public class MainCppMaker extends Visitor {
                     if(!additionalParameters) {
                         content.add(")");
                     }
-                }
-
-                else {
+                } else {
                     visit(n);
                 }
             } catch(ClassCastException e) {
-
             }
         } else if(n.isEmpty()) {
             content.add("(");
@@ -205,14 +210,8 @@ public class MainCppMaker extends Visitor {
         }
     }
 
-    public void visitCallName(GNode n) {
-        content.add("->");
-        content.add("_vptr");
-        content.add("->");
-        content.add(n.getString(0));
-        visit(n);
-    }
-
+    // Handles calling a method using the inheritance that utilizes vtables
+    // mainly handles methods that return a String object
     public void visitCallExpression(GNode n) {
         boolean visitAgain = true;
         GNode parentOfCallExpression = (GNode)map.fetchParentFor(n);
@@ -247,32 +246,13 @@ public class MainCppMaker extends Visitor {
                 visitAgain = false;
             }
         }
-//        String c1 = n.getNode(0).getName();
-//        if (c1.equals("PrimaryIdentifier")) {
-//            visit(n);
-//            content.add(n.getNode(0).getString(0));
-//            content.add("->");
-//            content.add("_vptr");
-//            content.add("->");
-//            content.add(n.getString(2));
-
-//            System.out.println("node3"+n.getNode(3).toString());
-
-//        } else {
-
-//        }
-//        if (n.size() > 3) {
-//            Node c4 = n.getNode(3);
-//            if (c4.hasName("Arguments") ) {
-//                content.add("(");
-//                content.add(")");
-//            }
-//        }
         if(visitAgain) {
             visit(n);
         }
     }
 
+    // if the parent is a SelectionExpression then add it's child string to list
+    // otherwise run visit to let other visitXXX methods handle
     public void visitPrimaryIdentifier(GNode n) {
         GNode parentOfPrimaryIdentifier = (GNode)map.fetchParentFor(n);
         if(parentOfPrimaryIdentifier.getName().equals("SelectionExpression")) {
@@ -281,6 +261,8 @@ public class MainCppMaker extends Visitor {
         visit(n);
     }
 
+    // add new keyword to list and if there is a constructor, add the constructor the the list afterwards
+    // run visit to let other methods handle otherwise
     public void visitNewClassExpression(GNode n) {
         content.add("new");
         try {
@@ -293,19 +275,15 @@ public class MainCppMaker extends Visitor {
 
         }
         visit(n);
-//        if(n.getNode(3).hasName("Arguments")){
-//            if(n.getNode(3).isEmpty()){
-//                content.add("(");
-//                content.add(")");
-//            }
-//        }
     }
 
+    // add string literals to list
     public void visitStringLiteral(GNode n) {
         content.add(n.getString(0));
         visit(n);
     }
 
+    // add the string as a string object
     public void visitnewCString(GNode n) {
         content.add("new __String(" + n.getString(0) + ")");
     }
@@ -328,38 +306,6 @@ public class MainCppMaker extends Visitor {
         }
         visit(n);
     }
-
-    public void visitModifier(GNode n) {
-        String s=n.getString(0);
-        if(s.equals("namespace")) {
-            content.add("using namespace");
-        }
-        visit(n);
-    }
-
-//    public void visitClassName(GNode n) {
-//        String classname=n.getString(0);
-//        if(classname.startsWith("Test")) {
-//            content.add("inputs::");
-//            classname=classname.toLowerCase();
-//            content.add(classname);
-//            content.add(";");
-//        } else {
-//            content.add(classname);
-//        }
-//
-//        visit(n);
-//    }
-
-
-
-
-
-
-
-
-
-
 
     // prints implementation to output.cpp
     public void printToMainCpp(String s) {
@@ -398,88 +344,17 @@ public class MainCppMaker extends Visitor {
         content.add("using namespace java::lang;\n");
         content.add("using namespace");
         super.dispatch(n);
-        String output="";
+        String mainOutput="";
         for(String s:content) {
-            output+=s;
-            output+=" ";
+            mainOutput+=s;
+            mainOutput+=" ";
         }
 
-        if(output.endsWith(" ")) {
-            output=output.substring(0,output.length()-1);
+        if(mainOutput.endsWith(" ")) {
+            mainOutput=mainOutput.substring(0,mainOutput.length()-1);
         }
 
-//        System.out.println(content.toString());
-        System.out.println(output);
-        return output;
-//        return mainPrint;
-    }
-
-    // An instance of this class will be mutated as the Ast is traversed.
-    public class ToBePrinted {
-
-        // list of IndexOrderedOutputto be printed
-        private List<IndexOrderedOutputs> implementationCode = new ArrayList<IndexOrderedOutputs>();
-
-        // add to list of IndexOrderedOutput
-        private void addIndexOrderedOutput(IndexOrderedOutputs s) {
-            this.implementationCode.add(s);
-        }
-
-        // get list of IndexOrderedOutput
-        public List<IndexOrderedOutputs> getList() {
-            return this.implementationCode;
-        }
-
-        public String getString() {
-            List<String> s = new ArrayList<String>();
-            this.sortByIndex();
-            for (int i = 0; i < this.implementationCode.size(); i++) {
-                s.add(implementationCode.get(i).getOutputString());
-            }
-            return s.toString();
-
-        }
-        // sorts the impelementation code by index (print according to the order they appear in ast)
-
-        public void addString(int index, String str) {
-            IndexOrderedOutputs out = new IndexOrderedOutputs(index, str);
-            this.addIndexOrderedOutput(out);
-        }
-
-        // insertion sort by index
-        public void sortByIndex() {
-            // sort using insertion sort
-            for (int i = 1; i < implementationCode.size(); i++) {
-                for (int j = i; j > 0; j--) {
-                    if (implementationCode.get(j).getIndex() < implementationCode.get(j - 1).getIndex()) {
-                        IndexOrderedOutputs temp = implementationCode.remove(j);
-                        implementationCode.add(j - 1, temp);
-                    }
-                }
-            }
-
-        }
-    }
-
-    // get the index of the node of the string (string is a child of a parent - the index is i and string is the ith child)
-    public class IndexOrderedOutputs {
-        private int index;
-        private String outputString;
-
-        // constructor
-        public IndexOrderedOutputs(int index, String outputString) {
-            this.index = index;
-            this.outputString = outputString;
-        }
-
-        // get inddex
-        public int getIndex() {
-            return this.index;
-        }
-
-        // get output string
-        public String getOutputString() {
-            return this.outputString;
-        }
+        System.out.println(mainOutput);
+        return mainOutput;
     }
 }

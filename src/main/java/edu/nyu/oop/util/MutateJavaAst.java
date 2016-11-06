@@ -15,10 +15,9 @@ public class MutateJavaAst extends Visitor {
 
         new Visitor() {
             public void visitClassDeclaration(GNode n) {
-                System.out.println("In class declaration");
                 // if Class name starts with "Test" then MethodDeclaration must have main method
                 if(n.getString(1).startsWith("Test")) {
-                    System.out.println("entering class declaration of main");
+                    // don't adjust class with main method
                 }
                 //if it's not Testxxx class
                 else{
@@ -73,9 +72,9 @@ public class MutateJavaAst extends Visitor {
                     GNode qualifiedIdentifier = GNode.create("QualifiedIdentifier","Class");
                     GNode type = GNode.create("Type", qualifiedIdentifier,null);
                     GNode methodName = GNode.create("MethodName","__" + classname + "::__class");
-                    GNode formalParamaters = GNode.create("FormalParameters");
+                    GNode formalParameters = GNode.create("FormalParameters");
                     String javalang = "java.lang.";
-                    GNode contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + "), (Class)__" + "Object" + "::__class()");
+                    GNode contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + ")), (Class)__" + "Object" + "::__class()");
 
                     boolean isExtended = false;
 
@@ -97,7 +96,7 @@ public class MutateJavaAst extends Visitor {
                                 GNode extensiontype = (GNode) extension.getNode(0);
                                 if (extensiontype.getNode(0).getName().equals("QualifiedIdentifier")) {
                                     String extendsFrom = extensiontype.getNode(0).getString(0);
-                                    contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + "), (Class)__" + extendsFrom + "::__class()");
+                                    contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + ")), (Class)__" + extendsFrom + "::__class()");
                                 }
                             }
 
@@ -105,11 +104,11 @@ public class MutateJavaAst extends Visitor {
 
                     GNode returnstatement = GNode.create("ReturnStatement", "k");
                     GNode block = GNode.create("Block",contents, returnstatement);
-                    GNode cInheritance = GNode.create("cInheritance", modifiers, null, type, methodName,formalParamaters,null,null,block);
-                    classBody.add(cInheritance);
+                    GNode cInheritance = GNode.create("cInheritance", modifiers, null, type, methodName,formalParameters,null,null,block);
+                    classBody.add(0,cInheritance);
                     String vptr = "__" + classname + "_VT" + " __" + classname +"::" + " __vtable";
                     GNode vptrString = GNode.create("vptrString", vptr);
-                    classBody.add(vptrString);
+                    classBody.add(0,vptrString);
 
                 }
                 visit(n);

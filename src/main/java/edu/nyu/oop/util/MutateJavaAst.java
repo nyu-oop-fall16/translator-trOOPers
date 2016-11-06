@@ -220,8 +220,22 @@ public class MutateJavaAst extends Visitor {
                 //if first node of Expression statement is call expression
                 if (n.getNode(0).getName().equals("CallExpression")) {
                     System.out.println("In call expression");
-                    GNode callExpression = printExpressionNode(n.getNode(0).getNode(3));
-                    n.set(0, callExpression);
+                    GNode check = (GNode) n.getNode(0).getNode(0);
+                    if(check.getName().equals("SelectionExpression")) {
+                        GNode callExpression = printExpressionNode(n.getNode(0).getNode(3));
+                        n.set(0, callExpression);
+                    }
+                    if(check.getName().equals("PrimaryIdentifier")) {
+                        if(n.getNode(0).getNode(3).getName().equals("Arguments")) {
+                            GNode arguments = (GNode) n.getNode(0).getNode(3);
+                            if(arguments.getNode(0).getName().equals("StringLiteral")) {
+                                String classString = arguments.getNode(0).getString(0);
+                                GNode newCSString = GNode.create("newCString",classString);
+                                arguments.set(0,newCSString);
+                            }
+                        }
+
+                    }
                 }
                 //if first node of Expression statement is not call expression
                 //In test 003 and 006, first node of expression statement is Expression
@@ -286,7 +300,7 @@ public class MutateJavaAst extends Visitor {
                                             GNode qualifiedIdentifier = GNode.create("QualifiedIdentifier", constructorname);
                                             GNode type = GNode.create("Type", qualifiedIdentifier, null);
                                             GNode newFormalParameter = GNode.create("FormalParameter", modifiers, type, null, "__this", null);
-                                            formalParameters.add(0, newFormalParameter);
+                                            formalParameters.add(newFormalParameter);
                                         }
                                     }
                                 }
@@ -344,8 +358,8 @@ public class MutateJavaAst extends Visitor {
                                     GNode fielddeclaration = (GNode)map.fetchParentFor(n);
                                     GNode block = (GNode)map.fetchParentFor(fielddeclaration);
                                     GNode classBody = (GNode)map.fetchParentFor(block);
-                                    GNode modifiers = (GNode) map.fetchParentFor(classBody);
-                                    GNode classDeclaration = (GNode) map.fetchParentFor(modifiers);
+                                    GNode methodDeclaration = (GNode) map.fetchParentFor(classBody);
+                                    GNode classDeclaration = (GNode) map.fetchParentFor(methodDeclaration);
                                     GNode compilationUnit = (GNode) map.fetchParentFor(classDeclaration);
                                     GNode constructorDeclaration = (GNode)compilationUnit.getNode(1).getNode(5).getNode(1);
                                     if(constructorDeclaration.getName().equals("ConstructorDeclaration")) {

@@ -18,7 +18,7 @@ public class MainCppMaker extends Visitor {
     // holds what needs to be printed to main file
     private ToBePrinted mainPrint = new ToBePrinted();
     private List<String> content = new ArrayList<String>();
-
+    boolean additionalParameters = false;
     // constructor - uses super class's constructor
     public MainCppMaker() {}
 
@@ -119,9 +119,10 @@ public class MainCppMaker extends Visitor {
                 }
             }
         }
-        visit(n);
+        //visit(n); <<to prevent double
         int sizeOfList = content.size();
-        if(!content.get(sizeOfList-1).endsWith(";\n")) {
+
+        if(!content.get(sizeOfList-1).endsWith(";\n") && !content.get(sizeOfList-1).endsWith(";")) { //before was "endswith ";\n"
             content.add(";");
         }
 
@@ -186,7 +187,9 @@ public class MainCppMaker extends Visitor {
                 if(n.getNode(0).hasName("newCString")) {
                     content.add("(");
                     visit(n);
-                    content.add(")");
+                    if(!additionalParameters) {
+                        content.add(")");
+                    }
                 }
 
                 else {
@@ -211,6 +214,7 @@ public class MainCppMaker extends Visitor {
     }
 
     public void visitCallExpression(GNode n) {
+        boolean visitAgain = true;
         GNode parentOfCallExpression = (GNode)map.fetchParentFor(n);
         if(parentOfCallExpression.getName().equals("Arguments")) {
             if(n.getNode(0).getName().equals("PrimaryIdentifier")) {
@@ -229,6 +233,18 @@ public class MainCppMaker extends Visitor {
                 }
                 content.add("->");
                 content.add("data");
+            }
+        }
+        if(parentOfCallExpression.getName().equals("ExpressionStatement")) {
+            if(n.getNode(0).getName().equals("PrimaryIdentifier")) {
+                String primId = n.getNode(0).getString(0);
+                content.add(primId);
+                content.add("->__vptr->");
+                content.add(n.getString(2));
+                additionalParameters = true;
+                visit(n);
+                content.add("," + primId + ")");
+                visitAgain = false;
             }
         }
 //        String c1 = n.getNode(0).getName();
@@ -252,8 +268,9 @@ public class MainCppMaker extends Visitor {
 //                content.add(")");
 //            }
 //        }
-
-        visit(n);
+        if(visitAgain) {
+            visit(n);
+        }
     }
 
     public void visitPrimaryIdentifier(GNode n) {

@@ -1,5 +1,7 @@
-package edu.nyu.oop.util;
+package edu.nyu.oop;
 
+import edu.nyu.oop.util.ChildToParentMap;
+import edu.nyu.oop.util.NodeUtil;
 import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;

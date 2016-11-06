@@ -74,7 +74,7 @@ public class MutateJavaAst extends Visitor {
                     GNode methodName = GNode.create("MethodName", "__" + classname + "::__class");
                     GNode formalParameters = GNode.create("FormalParameters");
                     String javalang = "java.lang.";
-                    GNode contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + ")), (Class)__" + "Object" + "::__class()");
+                    GNode contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + "\"" + javalang + classname + "\""+ "), (Class)__" + "Object" + "::__class());");
 
 
                     boolean isExtended = false;
@@ -96,7 +96,7 @@ public class MutateJavaAst extends Visitor {
                             GNode extensiontype = (GNode) extension.getNode(0);
                             if (extensiontype.getNode(0).getName().equals("QualifiedIdentifier")) {
                                 String extendsFrom = extensiontype.getNode(0).getString(0);
-                                contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + javalang + classname + ")), (Class)__" + extendsFrom + "::__class()");
+                                contents = GNode.create("Contents", "static Class k = new __Class(__rt::literal(" + "\"" + javalang + classname + "\""+ "), (Class)__" + extendsFrom + "::__class());");
                             }
                         }
 
@@ -107,7 +107,7 @@ public class MutateJavaAst extends Visitor {
                     GNode block = GNode.create("Block", contents, returnstatement);
                     GNode cInheritance = GNode.create("cInheritance", modifiers, null, type, methodName, formalParameters, null, null, block);
                     classBody.add(cInheritance);
-                    String vptr = "__" + classname + "_VT" + " __" + classname + "::" + " __vtable";
+                    String vptr = "__" + classname + "_VT" + " __" + classname + "::" + " __vtable;";
                     GNode vptrString = GNode.create("vptrString", vptr);
                     classBody.add(vptrString);
 
@@ -174,7 +174,7 @@ public class MutateJavaAst extends Visitor {
                             GNode returnStatement = (GNode) Block.getNode(0);
                             if (returnStatement.getNode(0).getName().equals("StringLiteral")) {
                                 String cppString = "__String";
-                                GNode arguments = GNode.create("Arguments", className);
+                                GNode arguments = GNode.create("Arguments", "\"" + className + "\"");
                                 GNode cString = GNode.create("cString", cppString, arguments);
                                 GNode NewClassExpression = GNode.create("NewClassExpression", cString);
                                 returnStatement.set(0, NewClassExpression);
@@ -333,6 +333,49 @@ public class MutateJavaAst extends Visitor {
                 //compares b's new declared class(A) with its original class(B)
                 //if it doesn't match, cast B to A.
                 try {
+                    if(n.getNode(0).getName().equals("Declarator")) {
+                        GNode declarator = (GNode)n.getNode(0);
+                        if(declarator.getNode(2).getName().equals("NewClassExpression")) {
+                            GNode newClassExpression = (GNode)declarator.getNode(2);
+                            if (newClassExpression.getNode(3).getName().equals("Arguments")) {
+                                GNode arguments = (GNode) newClassExpression.getNode(3);
+                                String classString = arguments.getNode(0).getString(0);
+                                if(arguments.getNode(0).getName().equals("StringLiteral")) {
+                                    GNode fielddeclaration = (GNode)map.fetchParentFor(n);
+                                    GNode block = (GNode)map.fetchParentFor(fielddeclaration);
+                                    GNode classBody = (GNode)map.fetchParentFor(block);
+                                    GNode modifiers = (GNode) map.fetchParentFor(classBody);
+                                    GNode classDeclaration = (GNode) map.fetchParentFor(modifiers);
+                                    GNode compilationUnit = (GNode) map.fetchParentFor(classDeclaration);
+                                    GNode constructorDeclaration = (GNode)compilationUnit.getNode(1).getNode(5).getNode(1);
+                                    if(constructorDeclaration.getName().equals("ConstructorDeclaration")) {
+                                        GNode formalParameters = (GNode)constructorDeclaration.getNode(3);
+                                        GNode formalParameter = (GNode)formalParameters.getNode(0);
+                                        GNode type = (GNode)formalParameter.getNode(1);
+                                        GNode qualifiedIdentifier = (GNode)type.getNode(0);
+                                        String checkifcString = qualifiedIdentifier.getString(0);
+                                        if(checkifcString.equals("String")) {
+                                            GNode newCString = GNode.create("newCString",classString);
+                                            arguments.set(0,newCString);
+                                        }
+                                    }
+                                }
+//                                String classString = newClassExpression.getNode(3).getNode(0).getString(0);
+//                                String cppString = "__String";
+//                                GNode newArguments = GNode.create("Arguments", "(" + classString + ")");
+//                                GNode cString = GNode.create("cString", cppString, newArguments);
+//                                GNode NewClassExpression = GNode.create("NewClassExpression", cString);
+//                                arguments.set(0, NewClassExpression);
+                            }
+                        }
+                    }
+
+                }
+
+                catch(Exception e) {
+
+                }
+                try {
                     Node declaratorsType = n.getNode(0).getNode(2);
                     if (declaratorsType.hasName("PrimaryIdentifier")) {
                         String RHS = declaratorsType.getString(0);
@@ -371,7 +414,7 @@ public class MutateJavaAst extends Visitor {
                 }
             }
 
-        }.dispatch(n);
+        } .dispatch(n);
 
         return n;
     }
@@ -389,6 +432,18 @@ public class MutateJavaAst extends Visitor {
         GNode selectionExpressionStart = GNode.create("SelectionExpression", primaryIdentifier, "cout");
         GNode selectionExpressionEnd = GNode.create("SelectionExpression", primaryIdentifier, "endl");
         GNode printLine = NodeUtil.deepCopyNode((GNode) o);
+        if(printLine.getName().equals("Arguments")) {
+            if (printLine.getNode(0).getName().equals("CallExpression")) {
+                GNode callex = (GNode) printLine.getNode(0);
+                if (callex.getString(2).equals("toString") || callex.getString(2).equals("getFld")) {
+                    String theArgument = callex.getNode(0).getString(0);
+                    GNode arguments = GNode.create("Arguments", theArgument);
+                    callex.set(3, arguments);
+                }
+            } else if(printLine.getNode(0).getName().equals("StringLiteral")) {
+                printLine = NodeUtil.deepCopyNode((GNode) printLine.getNode(0));
+            }
+        }
         GNode callExpression = GNode.create("CallExpression", selectionExpressionStart, printLine, selectionExpressionEnd);
         return callExpression;
     }

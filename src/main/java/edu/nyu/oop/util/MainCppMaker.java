@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainCppMaker extends Visitor {
+    ChildToParentMap map;
     private static Logger logger = org.slf4j.LoggerFactory.getLogger(JavaFiveImportParser.class);
 
     // holds what needs to be printed to main file
@@ -27,10 +28,18 @@ public class MainCppMaker extends Visitor {
         }
     }
 
-    public void visitQualifiedIdentifier(GNode n) {
-        content.add(n.getString(0));
+    //adding namespace inputs::testxxx
+    public void visitPackageDeclaration(GNode n) {
+        if(n.getNode(1).getName().equals("QualifiedIdentifier")) {
+            GNode qualifiedIdentifier = (GNode)n.getNode(1);
+            content.add(qualifiedIdentifier.getString(0) + "::" + qualifiedIdentifier.getString(1) + ";\n");
+        }
         visit(n);
     }
+//    public void visitQualifiedIdentifier(GNode n) {
+//        content.add(n.getString(0));
+//        visit(n);
+//    }
 
     public void visitMethodDeclaration(GNode n) {
         String methodname = n.getNode(3).getString(0); // get "main" (name of the method)
@@ -41,27 +50,81 @@ public class MainCppMaker extends Visitor {
         visit(n);
     }
 
-    public void visitMethodName(GNode n){
-        content.add(n.getString(0));
+    public void visitMethodName(GNode n) {
+        if(n.getString(0).equals("main")) {
+            content.add(n.getString(0));
+        }
         visit(n);
     }
 
-    public void visitFormalParameters(GNode n){
-        content.add("(");
-        visit(n);
-        content.add(")");
+    public void visitFormalParameters(GNode n) {
+        GNode parentOfFormalParameters = (GNode)map.fetchParentFor(n);
+        if (parentOfFormalParameters.getName().equals("MethodDeclaration")) {
+            GNode methodDeclaration = parentOfFormalParameters;
+            int sizeOfMethodD = methodDeclaration.size();
+            for (int i = 0; i < sizeOfMethodD; i++) {
+                try {
+                    if (methodDeclaration.getNode(i).getName().equals("MethodName")) {
+                        GNode methodName = (GNode) methodDeclaration.getNode(i);
+                        String methodString = methodName.getString(0);
+                        if (methodString.equals("main")) {
+                            content.add("(");
+                            visit(n);
+                            content.add(")");
+                        }
+                    }
+                } catch (NullPointerException e) {
+
+                }
+            }
+        }
+
+        //visit(n);
     }
 
     public void visitBlock(GNode n) {
-        content.add("{");
-        visit(n);
-        content.add("}");
+        GNode parentOfFormalParameters = (GNode)map.fetchParentFor(n);
+        if (parentOfFormalParameters.getName().equals("MethodDeclaration")) {
+            GNode methodDeclaration = parentOfFormalParameters;
+            int sizeOfMethodD = methodDeclaration.size();
+            for (int i = 0; i < sizeOfMethodD; i++) {
+                try {
+                    if (methodDeclaration.getNode(i).getName().equals("MethodName")) {
+                        GNode methodName = (GNode) methodDeclaration.getNode(i);
+                        String methodString = methodName.getString(0);
+                        if (methodString.equals("main")) {
+                            content.add("{");
+                            visit(n);
+                            content.add("}");
+                        }
+                    }
+                } catch (NullPointerException e) {
+
+                }
+            }
+        }
 
     }
 
     public void visitFieldDeclaration(GNode n) {
+        if(n.getNode(0).isEmpty()) {
+            if(n.getNode(1).getName().equals("Type")) {
+                GNode type = (GNode)n.getNode(1);
+                if(type.getNode(0).getName().equals("QualifiedIdentifier")) {
+                    GNode qualifiedIdentifier = (GNode)type.getNode(0);
+                    String classtype = qualifiedIdentifier.getString(0);
+                    content.add(classtype);
+                    visit(n);
+                    content.add(";");
+                }
+            }
+        }
         visit(n);
-        content.add(";");
+        int sizeOfList = content.size();
+        if(!content.get(sizeOfList-1).endsWith(";\n")) {
+            content.add(";");
+        }
+
     }
 
     public void visitExpressionStatement(GNode n) {
@@ -89,32 +152,57 @@ public class MainCppMaker extends Visitor {
     }
 
     public void visitDeclarator(GNode n) {
-        content.add(n.getString(0));
-        content.add("=");
+        GNode declarators = (GNode)map.fetchParentFor(n);
+        GNode fieldDeclaration = (GNode)map.fetchParentFor(declarators);
+        GNode check = (GNode)map.fetchParentFor(fieldDeclaration);
+        if(check.getName().equals("Block")) {
+            content.add(n.getString(0));
+            content.add("=");
 
-        if (n.getString(1) != null) {
-            content.add(n.getString(1));
+            if (n.getString(1) != null) {
+                content.add(n.getString(1));
+            }
+            try {
+                if (n.getNode(2).getName().equals("PrimaryIdentifier")) {
+                    GNode primaryIdentifier = (GNode) n.getNode(2);
+                    String castedInstance = primaryIdentifier.getString(0);
+                    content.add(castedInstance);
+                }
+            } catch (NullPointerException npe) {
+
+            }
         }
         visit(n);
     }
 
     public void visitArguments(GNode n) {
         if (!n.isEmpty()) {
-            if (n.getNode(0).hasName("StringLiteral")) {
-                content.add("(");
-                visit(n);
-                content.add(")");
-            } else {
-                visit(n);
+            try {
+                if (n.getNode(0).hasName("StringLiteral")) {
+                    content.add("(");
+                    visit(n);
+                    content.add(")");
+                }
+                if(n.getNode(0).hasName("newCString")) {
+                    content.add("(");
+                    visit(n);
+                    content.add(")");
+                }
+
+                else {
+                    visit(n);
+                }
+            } catch(ClassCastException e) {
+
             }
-        } else if(n.isEmpty()){
+        } else if(n.isEmpty()) {
             content.add("(");
             content.add(")");
             visit(n);
         }
     }
 
-    public void visitCallName(GNode n){
+    public void visitCallName(GNode n) {
         content.add("->");
         content.add("_vptr");
         content.add("->");
@@ -123,7 +211,27 @@ public class MainCppMaker extends Visitor {
     }
 
     public void visitCallExpression(GNode n) {
-        String c1 = n.getNode(0).getName();
+        GNode parentOfCallExpression = (GNode)map.fetchParentFor(n);
+        if(parentOfCallExpression.getName().equals("Arguments")) {
+            if(n.getNode(0).getName().equals("PrimaryIdentifier")) {
+                GNode primaryIdentifier = (GNode) n.getNode(0);
+                String instance = primaryIdentifier.getString(0);
+                content.add(instance);
+                content.add("->__vptr->");
+            }
+            String check = n.getString(2);
+            if (check.equals("toString")||check.equals("getFld")) {
+                content.add(check);
+                if(n.getNode(3).getName().equals("Arguments")) {
+                    GNode arguments = (GNode) n.getNode(3);
+                    String argument = arguments.getString(0);
+                    content.add("(" + argument + ")");
+                }
+                content.add("->");
+                content.add("data");
+            }
+        }
+//        String c1 = n.getNode(0).getName();
 //        if (c1.equals("PrimaryIdentifier")) {
 //            visit(n);
 //            content.add(n.getNode(0).getString(0));
@@ -144,25 +252,29 @@ public class MainCppMaker extends Visitor {
 //                content.add(")");
 //            }
 //        }
-        visit(n);
-        try {
-            String check=n.getNode(2).getString(0);
-            if (check.equals("toString")||check.equals("getFld")) {
-                content.add("->");
-                content.add("data");
-            }
-        }catch (Exception e){
 
-        }
+        visit(n);
     }
 
     public void visitPrimaryIdentifier(GNode n) {
-        content.add(n.getString(0));
+        GNode parentOfPrimaryIdentifier = (GNode)map.fetchParentFor(n);
+        if(parentOfPrimaryIdentifier.getName().equals("SelectionExpression")) {
+            content.add(n.getString(0));
+        }
         visit(n);
     }
 
     public void visitNewClassExpression(GNode n) {
         content.add("new");
+        try {
+            if (n.getNode(2).getName().equals("QualifiedIdentifier")) {
+                GNode qualifiedIdentifier = (GNode) n.getNode(2);
+                String constructor = qualifiedIdentifier.getString(0);
+                content.add(constructor);
+            }
+        } catch(Exception e) {
+
+        }
         visit(n);
 //        if(n.getNode(3).hasName("Arguments")){
 //            if(n.getNode(3).isEmpty()){
@@ -177,31 +289,50 @@ public class MainCppMaker extends Visitor {
         visit(n);
     }
 
-    public void visitClassDeclaration(GNode n){
+    public void visitnewCString(GNode n) {
+        content.add("new __String(" + n.getString(0) + ")");
+    }
+
+    //get first string in qualified identifiers without getting 'inputs'
+    public void visitClassDeclaration(GNode n) {
+        map = new ChildToParentMap(n);
+        if(n.getNode(5).getName().equals("ClassBody")) {
+            GNode classBody = (GNode)n.getNode(5);
+            if(classBody.getNode(0).getName().equals("MethodDeclaration")) {
+                GNode methodDeclaration = (GNode)classBody.getNode(0);
+                if(methodDeclaration.getNode(2).getName().equals("Type")) {
+                    GNode type = (GNode)methodDeclaration.getNode(2);
+                    if(type.getNode(0).getName().equals("QualifiedIdentifier")) {
+                        String qid = type.getNode(0).getString(0);
+                        content.add(qid);
+                    }
+                }
+            }
+        }
         visit(n);
     }
 
-    public void visitModifier(GNode n){
+    public void visitModifier(GNode n) {
         String s=n.getString(0);
-        if(s.equals("namespace")){
+        if(s.equals("namespace")) {
             content.add("using namespace");
         }
         visit(n);
     }
 
-    public void visitClassName(GNode n){
-        String classname=n.getString(0);
-        if(classname.startsWith("Test")){
-            content.add("inputs::");
-            classname=classname.toLowerCase();
-            content.add(classname);
-            content.add(";");
-        }else{
-            content.add(classname);
-        }
-
-        visit(n);
-    }
+//    public void visitClassName(GNode n) {
+//        String classname=n.getString(0);
+//        if(classname.startsWith("Test")) {
+//            content.add("inputs::");
+//            classname=classname.toLowerCase();
+//            content.add(classname);
+//            content.add(";");
+//        } else {
+//            content.add(classname);
+//        }
+//
+//        visit(n);
+//    }
 
 
 
@@ -242,10 +373,13 @@ public class MainCppMaker extends Visitor {
     // visits the whole ast and returns the list of what needs to be printed in main.cpp
     public String getMainToBePrinted(GNode n) {
         content.add("#include <iostream>\n");
-        content.add("#include output.h\n");
+        content.add("#include \"output.h\"\n");
+        content.add("#include \"java_lang.h\"\n");
         content.add("using namespace");
         content.add("std");
         content.add(";\n");
+        content.add("using namespace java::lang;\n");
+        content.add("using namespace");
         super.dispatch(n);
         String output="";
         for(String s:content) {
@@ -253,7 +387,7 @@ public class MainCppMaker extends Visitor {
             output+=" ";
         }
 
-        if(output.endsWith(" ")){
+        if(output.endsWith(" ")) {
             output=output.substring(0,output.length()-1);
         }
 

@@ -1,4 +1,7 @@
 #include <iostream>
- #include output.h
+ #include "output.h"
+ #include "java_lang.h"
  using namespace std ;
- using namespace inputs:: test002 ; int main ( ) { A a = new __A ( ) ; Object o = (Object) a ; std ::cout << o -> _vptr -> toString ( ) -> data << std ::endl ; }
+ using namespace java::lang;
+ using namespace inputs::test001;
+ int main ( ) { A a = new __A ; a = new __A ; std ::cout << a ->__vptr-> toString (a) -> data << std ::endl ; }

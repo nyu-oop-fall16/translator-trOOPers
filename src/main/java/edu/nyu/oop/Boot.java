@@ -145,7 +145,7 @@ public class Boot extends Tool {
 
 
 //        // passes the mutated Ast to be used to create the implementation files
-        if(runtime.test("phaseFive")){
+        if(runtime.test("phaseFive")) {
             //GNode nodeCopy = NodeUtil.deepCopyNode((GNode)n);
             //mutatedAst = MutateJavaAst.mutate(nodeCopy);
             // Traverse mutated Ast and print to output.cpp

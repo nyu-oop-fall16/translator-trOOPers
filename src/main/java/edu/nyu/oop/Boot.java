@@ -44,15 +44,15 @@ public class Boot extends Tool {
         super.init();
         // Declare command line arguments.
         runtime.
-                bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
-                bool("printJavaCode", "printJavaCode", false, "Print Java code.").
-                bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
-                bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
-                bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
-                bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
-                bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
-                bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
-                bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.");
+        bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
+        bool("printJavaCode", "printJavaCode", false, "Print Java code.").
+        bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
+        bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
+        bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
+        bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
+        bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
+        bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
+        bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.");
     }
 
     @Override
@@ -80,7 +80,9 @@ public class Boot extends Tool {
         return NodeUtil.parseJavaFile(file);
     }
 
+    // list of gnodes and imports
     private List<GNode> listGNodes = new ArrayList<GNode>();
+    // holds the mutatedAst
     private GNode mutatedAst;
 
     @Override
@@ -104,11 +106,9 @@ public class Boot extends Tool {
         }
 
         // Generates list of GNodes with its dependencies
-        if (runtime.test("generateListGNodes")){
-            // create the list
-            List<GNode> g = new ArrayList<GNode>();
+        if (runtime.test("generateListGNodes")) {
             // add the GNode of the java class passed in
-            g.add((GNode) n);
+            listGNodes.add((GNode) n);
 
             // should be a list of all dependencies and their dependencies recursively gotten
             List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
@@ -116,8 +116,8 @@ public class Boot extends Tool {
             // add the dependencies to the list
             for(int i = 0; i < nodes.size(); i++) {
                 // makes sure that a GNode isn't added to list multiple times during cyclic imports
-                if(!g.contains(nodes.get(i))) {
-                    g.add(nodes.get(i));
+                if(!listGNodes.contains(nodes.get(i))) {
+                    listGNodes.add(nodes.get(i));
                 }
             }
         }
@@ -146,12 +146,12 @@ public class Boot extends Tool {
             maker.runVisitor(rootNode);
         }
 
-        
+
         if (runtime.test("printMutatedAst")) {
 
             // make a copy of the Java Ast of the test class and mutate it to C++ Ast
-            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
-            mutatedAst = MutateJavaAst.mutate(nodeCopy);
+            GNode copy = NodeUtil.deepCopyNode(listGNodes.get(0));
+            mutatedAst = MutateJavaAst.mutate(copy);
 
             // check the Ast in console
             runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
@@ -160,10 +160,6 @@ public class Boot extends Tool {
 
         // passes the mutated Ast to be used to create the implementation files
         if (runtime.test("printImplementationFiles")) {
-            // make a copy of the Java Ast of the test class and mutate it to C++ Ast
-            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
-            mutatedAst = MutateJavaAst.mutate(nodeCopy);
-
             OutputCppMaker outputMaker = new OutputCppMaker();
             // get the list of strings to be printed after traversing ast
             String outputContent=outputMaker.getOutputToBePrinted(mutatedAst);
@@ -173,12 +169,12 @@ public class Boot extends Tool {
             String mainContent=mainMaker.getMainToBePrinted(mutatedAst);
             mainMaker.printToMainCpp(mainContent);
         }
-        
+
         if (runtime.test("runTranslator")) {
             // create the list
-            List<GNode> g = new ArrayList<GNode>();
+            List<GNode> gNodesList = new ArrayList<GNode>();
             // add the GNode of the java class passed in
-            g.add((GNode) n);
+            gNodesList.add((GNode) n);
 
             // should be a list of all dependencies and their dependencies recursively gotten
             List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
@@ -186,13 +182,13 @@ public class Boot extends Tool {
             // add the dependencies to the list
             for(int i = 0; i < nodes.size(); i++) {
                 // makes sure that a GNode isn't added to list multiple times during cyclic imports
-                if(!g.contains(nodes.get(i))) {
-                    g.add(nodes.get(i));
+                if(!gNodesList.contains(nodes.get(i))) {
+                    gNodesList.add(nodes.get(i));
                 }
             }
-            
+
             JavaAstVisitor v = new JavaAstVisitor();
-            GNode nodeCopy = NodeUtil.deepCopyNode(listGNodes.get(0));
+            GNode nodeCopy = NodeUtil.deepCopyNode(gNodesList.get(0));
             HeaderASTMaker build = v.getBuildInfo(nodeCopy);
 
             // Create GNode that will be the root node of the AST.
@@ -201,22 +197,22 @@ public class Boot extends Tool {
             // make the header file
             HeaderFileMaker maker = new HeaderFileMaker();
             maker.runVisitor(rootNode);
-            
+
             // make the mutated Java AST
-            mutatedAst = MutateJavaAst.mutate(nodeCopy);
-        
+            GNode mutated = MutateJavaAst.mutate(nodeCopy);
+
             // make the implementation files
             OutputCppMaker outputMaker = new OutputCppMaker();
             // get the list of strings to be printed after traversing ast
-            String outputContent=outputMaker.getOutputToBePrinted(mutatedAst);
+            String outputContent=outputMaker.getOutputToBePrinted(mutated);
             outputMaker.printToOutputCpp(outputContent);
 
             MainCppMaker mainMaker = new MainCppMaker();
-            String mainContent=mainMaker.getMainToBePrinted(mutatedAst);
+            String mainContent=mainMaker.getMainToBePrinted(mutated);
             mainMaker.printToMainCpp(mainContent);
         }
     }
-       
+
     /**
      * Run Boot with the specified command line arguments.
      *

@@ -63,13 +63,11 @@ public class OutputCppMaker extends Visitor {
             content.add("(");
             GNode formalParameters = (GNode)n.getNode(3);
             int sizeOfFormalParameters = formalParameters.size();
-            for(int i=0; i<sizeOfFormalParameters; i++) {
-                GNode formalParameter = (GNode) formalParameters.getNode(i);
-                GNode qualifiedIdentifier = (GNode) formalParameter.getNode(1).getNode(0);
-                content.add(qualifiedIdentifier.getString(0));
-                content.add(formalParameter.getString(3));
-                content.add(",");
-            }
+            GNode formalParameter = (GNode) formalParameters.getNode(0);
+            GNode qualifiedIdentifier = (GNode) formalParameter.getNode(1).getNode(0);
+            content.add(qualifiedIdentifier.getString(0));
+            content.add(formalParameter.getString(3));
+            content.add(",");
             if(content.get(content.size()-1).equals(",")) {
                 content.remove(content.size()-1);
             }

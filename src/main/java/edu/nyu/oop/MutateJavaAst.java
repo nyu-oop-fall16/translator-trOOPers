@@ -290,7 +290,8 @@ public class MutateJavaAst extends Visitor {
                                 GNode selectionExpression = (GNode) expression.getNode(0);
                                 if (selectionExpression.getNode(0).getName().equals("ThisExpression")) {
                                     String argument = selectionExpression.getString(1);
-                                    String newArgument = primaryIdentifierList.get(0) + "(__this->" + argument + ")";
+//                                    String newArgument = primaryIdentifierList.get(0) + "(__this->" + argument + ")";
+                                    String newArgument = primaryIdentifierList.get(0) + "(" + argument + ")";
                                     GNode newExpression = GNode.create("Expression", newArgument, "__vptr(&__vtable)");
                                     expressionStatement.set(0, newExpression);
                                     //since there is a this expression, you also have to ad A__this to formal parameters
@@ -476,4 +477,3 @@ public class MutateJavaAst extends Visitor {
         return empty;
     }
 }
-

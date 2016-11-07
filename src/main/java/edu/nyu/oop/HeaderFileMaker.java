@@ -97,8 +97,7 @@ public class HeaderFileMaker extends Visitor {
             }
             if (i < n.size()-1) {
                 hcp.addToDL(" ");
-            }
-            else {
+            } else {
                 hcp.addToDL(";\n");
             }
         }
@@ -123,7 +122,7 @@ public class HeaderFileMaker extends Visitor {
     // data layout.
     public void visitDLMethodDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
-        hcp.addToDL(n.getNode(0).getString(0) + " " + n.getNode(1).getString(0) + " " + n.getNode(2).getString(0) + "("); // print modifier "static", return type, and method name
+        hcp.addToDL(n.getNode(0).getString(0) + " " + n.getNode(2).getString(0) + " " + n.getNode(1).getString(0) + "("); // print modifier "static", return type, and method name
         Node methodParameters = n.getNode(3);
         StringBuffer s = addParamsToBuffer(methodParameters);
         hcp.addToDL(s + ";\n");
@@ -153,8 +152,7 @@ public class HeaderFileMaker extends Visitor {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         if (n.getNode(0).getString(0).equals("isa")) {
             hcp.addToMethodDecs(n.getNode(1).getString(0) + " " + n.getNode(0).getString(0) + ";\n");
-        }
-        else {
+        } else {
             hcp.addToMethodDecs(n.getNode(1).getString(0) + " (*" + n.getNode(0).getString(0) + ")(");
             StringBuffer s = addParamsToBuffer(n.getNode(3));
             hcp.addToMethodDecs(s + ";\n");
@@ -206,8 +204,7 @@ public class HeaderFileMaker extends Visitor {
         StringBuffer s = new StringBuffer();
         if (params.isEmpty()) {
             s.append(")");
-        }
-        else {
+        } else {
             for (int i = 0; i < params.size(); i++) {
                 s.append(params.getString(i));
                 if (i < params.size() - 1) {

@@ -1,22 +1,18 @@
 package edu.nyu.oop;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.List;
-
-import java.util.ArrayList;
-
 import edu.nyu.oop.util.JavaFiveImportParser;
 import edu.nyu.oop.util.NodeUtil;
 import edu.nyu.oop.util.XtcProps;
 import org.slf4j.Logger;
-
+import xtc.lang.JavaPrinter;
+import xtc.parser.ParseException;
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.util.Tool;
-import xtc.lang.JavaPrinter;
-import xtc.parser.ParseException;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -44,15 +40,15 @@ public class Boot extends Tool {
         super.init();
         // Declare command line arguments.
         runtime.
-        bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
-        bool("printJavaCode", "printJavaCode", false, "Print Java code.").
-        bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
-        bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
-        bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
-        bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
-        bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
-        bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
-        bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.");
+                bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
+                bool("printJavaCode", "printJavaCode", false, "Print Java code.").
+                bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
+                bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
+                bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
+                bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
+                bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
+                bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
+                bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.");
     }
 
     @Override
@@ -200,6 +196,10 @@ public class Boot extends Tool {
 
             // make the mutated Java AST
             GNode mutated = MutateJavaAst.mutate(nodeCopy);
+            runtime.console().format(mutated).pln().flush();
+
+            //print formatted mutated node tocppast0xx.txt
+            writecppast(mutated);
 
             // make the implementation files
             OutputCppMaker outputMaker = new OutputCppMaker();
@@ -211,6 +211,65 @@ public class Boot extends Tool {
             String mainContent=mainMaker.getMainToBePrinted(mutated);
             mainMaker.printToMainCpp(mainContent);
         }
+    }
+
+
+    public void writecppast(Node mutated) {
+        //filenumber=00x or 0xx
+        String filenumber=mutated.getNode(0).getNode(1).getString(1).substring(4,7);
+
+        String inputs=XtcProps.getList("input.locations")[1];
+        File cpp=new File(inputs+"/inputs/test"+filenumber+"/cppast"+filenumber+".txt");
+        PrintWriter cppWriter = null;
+        try {
+            cppWriter = new PrintWriter(cpp);
+        } catch (FileNotFoundException e) {
+            logger.warn("Invalid path for file " + cpp);
+        }
+
+
+        int counter=0;
+        int start=0;
+        int end;
+        int flag=0;
+
+        StringBuilder content=new StringBuilder(mutated.toString());
+        for(int i=0;i<content.length();i++){
+            String add="\n";
+            String sub="";
+
+            if(content.charAt(i)=='('){
+                counter+=1;
+                end=i+1;
+                flag=1;
+                sub=content.substring(start, end);
+                start = i + 1;
+            }
+            else if(content.charAt(i)==','){
+                end=i+1;
+                flag=1;
+                sub=content.substring(start, end);
+                start = i + 2;//skip the space following comma
+            }
+            else if(content.charAt(i)==')'){
+                counter-=1;
+                end=i;
+                flag=1;
+                sub=content.substring(start, end);
+                start = i;
+            }
+
+            for(int j=0;j<counter;j++){
+                add+="\t";
+            }
+
+            if(flag==1) {
+                cppWriter.print(sub);
+                cppWriter.print(add);
+                flag=0;
+            }
+        }
+        cppWriter.close();
     }
 
     /**

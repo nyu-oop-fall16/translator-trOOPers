@@ -149,14 +149,15 @@ public class OutputCppMaker extends Visitor {
             content.add("{\n");
             if (!n.isEmpty()) {
                 int sizeOfBlock = n.size();
-                try {
-                    if (n.getNode(0).getName().equals("Contents")) {
-                        GNode contents = (GNode) n.getNode(0);
-                        content.add(contents.getString(0));
-                    }
-                } catch (IndexOutOfBoundsException e) {
-
-                }
+                //changed to visitBlock
+//                try {
+//                    if (n.getNode(0).getName().equals("Contents")) {
+//                        GNode contents = (GNode) n.getNode(0);
+//                        content.add(contents.getString(0));
+//                    }
+//                } catch (IndexOutOfBoundsException e) {
+//
+//                }
 
             }
             visit(n);
@@ -164,24 +165,35 @@ public class OutputCppMaker extends Visitor {
         }
     }
 
+    public void visitContent(GNode n){
+        content.add(n.getString(0));
+        visit(n);
+
+    }
+
+
+    public void visitPrimaryIdentifier(GNode n){
+        content.add("__this->" + n.getString(0));
+        visit(n);
+    }
+
     public void visitReturnStatement(GNode n) {
         content.add("return");
-        if(!n.isEmpty()) {
-            try {
-                if(n.getNode(0).getName().equals("PrimaryIdentifier")) {
-                    GNode primaryIdentifier = (GNode)n.getNode(0);
-                    content.add("__this->" + primaryIdentifier.getString(0));
-                }
-            } catch(Exception e) {
-
-            }
-            try {
-                String kCase = n.getString(0);
-                content.add(kCase);
-            } catch(ClassCastException e) {
-
-            }
+        try{//if the first is string, then return k;
+            String k=n.getString(0);
+            content.add(k);
+        }catch (Exception e){
         }
+        //changed to visitPrimaryIdentifier;
+//            try {
+//                if(n.getNode(0).getName().equals("PrimaryIdentifier")) {
+//                    GNode primaryIdentifier = (GNode)n.getNode(0);
+//                    content.add("__this->" + primaryIdentifier.getString(0));
+//                }
+//            } catch(Exception e) {
+//
+//            }
+
         visit(n);
         content.add(";");
 

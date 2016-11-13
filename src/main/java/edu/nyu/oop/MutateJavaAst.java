@@ -2,6 +2,7 @@ package edu.nyu.oop;
 
 import edu.nyu.oop.util.ChildToParentMap;
 import edu.nyu.oop.util.NodeUtil;
+//import sun.net.www.protocol.gopher.GopherClient;
 import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
@@ -105,7 +106,8 @@ public class MutateJavaAst extends Visitor {
 
                     }
 
-                    GNode returnstatement = GNode.create("ReturnStatement", "k");
+                    GNode returnstatement = GNode.create("ReturnStatement","k");
+//                    GNode returnstatement = GNode.create("ReturnStatement", GNode.create("PrimaryIdentifier","k"));
                     GNode block = GNode.create("Block", contents, returnstatement);
                     GNode cInheritance = GNode.create("cInheritance", modifiers, null, type, methodName, formalParameters, null, null, block);
                     classBody.add(cInheritance);
@@ -321,6 +323,16 @@ public class MutateJavaAst extends Visitor {
                 visit(n);
             }
 
+
+            public void visitExpression(GNode n){
+
+                visit(n);
+            }
+
+
+
+
+
             public void visitDefaultConstructorDeclaration(GNode n) {
                 System.out.println("In default constructor declaration");
                 String className = "__" + n.getString(0);
@@ -433,6 +445,15 @@ public class MutateJavaAst extends Visitor {
      * @param o the argument node describing what needs to be printed
      * @return node containing the information for printing
      */
+
+    public void visitSelectionExpression(GNode n){
+        GNode PrimaryIdentifier;
+        if(n.getNode(0).hasName("PrimaryIdentifier")){
+
+        }
+    }
+
+
     private static GNode printExpressionNode(Object o) {
         GNode primaryIdentifier = GNode.create("PrimaryIdentifier", "std");
         GNode selectionExpressionStart = GNode.create("SelectionExpression", primaryIdentifier, "cout");

@@ -112,6 +112,12 @@ namespace java {
     // invokes the default no-arg constructor for __String_VT.
     __String_VT __String::__vtable;
 
+
+    std::ostream& operator<<(std::ostream& os, String s) {
+      os << s->data;
+      return os;
+    }
+
     // =======================================================================
 
     // java.lang.Class(String, Class)

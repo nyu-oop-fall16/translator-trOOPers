@@ -111,6 +111,8 @@ namespace java {
       static __String_VT __vtable;
     };
 
+    std::ostream& operator<<(std::ostream& os, String s);
+
     // The vtable layout for java.lang.String.
     struct __String_VT {
       Class __isa;
@@ -254,6 +256,18 @@ namespace __rt {
       : __vptr(&__vtable), length(length), __data(new T[length]()) {
     }
 
+    T& operator[](int32_t index) {
+      if (index < 0 || length <= index)
+        throw java::lang::ArrayIndexOutOfBoundsException();
+      return __data[index];
+    }
+
+    const T& operator[](int32_t index) const {
+      if (index < 0 || length <= index)
+        throw java::lang::ArrayIndexOutOfBoundsException();
+      return __data[index];
+    }
+
     // The function returning the class object representing the array.
     static java::lang::Class __class();
 
@@ -264,9 +278,6 @@ namespace __rt {
   // The vtable for arrays.  Note that this definition uses the default no-arg constructor.
   template <typename T>
   Array_VT<T> Array<T>::__vtable;
-
-  // But where is the definition of __class()???
-  // That has to be figured out based on the specialization
 
   // The vtable for arrays.
   template <typename T>

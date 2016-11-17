@@ -49,6 +49,7 @@ public class OutputCppMaker extends Visitor {
 
     public void visitClassDeclaration(GNode n) {
         //only traverse not main class for output.cpp
+        map = new ChildToParentMap(n);
         if(n.getString(1).startsWith("Test")) {
 
         } else {
@@ -57,7 +58,34 @@ public class OutputCppMaker extends Visitor {
     }
 
     public void visitConstructorDeclaration(GNode n) {
-        content.add(n.getString(2));
+        try {
+            content.add(n.getString(2));
+            content.add("(");
+            GNode formalParameters = (GNode)n.getNode(3);
+            int sizeOfFormalParameters = formalParameters.size();
+            GNode formalParameter = (GNode) formalParameters.getNode(0);
+            GNode qualifiedIdentifier = (GNode) formalParameter.getNode(1).getNode(0);
+            content.add(qualifiedIdentifier.getString(0));
+            content.add(formalParameter.getString(3));
+            content.add(",");
+            if(content.get(content.size()-1).equals(",")) {
+                content.remove(content.size()-1);
+            }
+            content.add(")");
+            content.add(":");
+            GNode block = (GNode) n.getNode(5);
+            GNode expression = (GNode) block.getNode(0).getNode(0);
+            int sizeOfExpression = expression.size();
+            for (int i = 0; i < sizeOfExpression; i++) {
+                content.add(expression.getString(i));
+                if (i != sizeOfExpression - 1) {
+                    content.add(",");
+                }
+            }
+            content.add("{}\n");
+        } catch(Exception e) {
+
+        }
         visit(n);
 
     }
@@ -68,7 +96,7 @@ public class OutputCppMaker extends Visitor {
         content.add("():");
         content.add(n.getString(2));
         content.add("{");
-        content.add("}\n");
+        content.add("}");
         visit(n);
     }
 
@@ -95,19 +123,14 @@ public class OutputCppMaker extends Visitor {
 
     public void visitMethodName(GNode n) {
         content.add(n.getString(0));
+
         visit(n);
 
-    }
-
-    public void visitFormalParameter(GNode n) {
-        visit(n);
-        content.add(n.getString(3));
-        content.add(",");
     }
 
     public void visitFormalParameters(GNode n) {
-//        GNode constructorDeclaration = (GNode) map.fetchParentFor(n);
-//        if(!constructorDeclaration.getName().equals("ConstructorDeclaration")) {
+        GNode constructorDeclaration = (GNode) map.fetchParentFor(n);
+        if(!constructorDeclaration.getName().equals("ConstructorDeclaration")) {
             content.add("(");
             try {
                 content.add(n.getString(0));
@@ -115,42 +138,37 @@ public class OutputCppMaker extends Visitor {
 
             }
             visit(n);
-        if(content.get(content.size()-1).equals(",")){
-            content.remove(content.size()-1);
+            content.add(")");
         }
-        content.add(")");
 
     }
-
-    public void visitExpression(GNode n){
-        content.add(":");
-        for(int i=0;i<n.size();i++){
-            content.add(n.getString(i));
-            content.add(",");
-        }
-        content.remove(content.size()-1);
-        visit(n);
-    }
-
 
     public void visitBlock(GNode n) {
-        content.add("{\n");
-        visit(n);
-        content.add("}");
-        content.add("\n");
+        GNode constructor = (GNode) map.fetchParentFor(n);
+        if(!constructor.getName().equals("ConstructorDeclaration")) {
+            content.add("{\n");
+            if (!n.isEmpty()) {
+                int sizeOfBlock = n.size();
+                //changed to visitBlock
+//                try {
+//                    if (n.getNode(0).getName().equals("Contents")) {
+//                        GNode contents = (GNode) n.getNode(0);
+//                        content.add(contents.getString(0));
+//                    }
+//                } catch (IndexOutOfBoundsException e) {
+//
+//                }
+
+            }
+            visit(n);
+            content.add("}\n");
+        }
     }
 
-    public void visitContents(GNode n){
+    public void visitContent(GNode n){
         content.add(n.getString(0));
-        content.add("\n");
         visit(n);
 
-    }
-
-    public void visitvptrString(GNode n){
-        content.add(n.getString(0));
-        content.add("\n");
-        visit(n);
     }
 
 
@@ -177,7 +195,7 @@ public class OutputCppMaker extends Visitor {
 //            }
 
         visit(n);
-        content.add(";\n");
+        content.add(";");
 
     }
 
@@ -199,6 +217,11 @@ public class OutputCppMaker extends Visitor {
         }
         visit(n);
         content.add(")");
+    }
+
+    public void visitvptrString(GNode n) {
+        content.add(n.getString(0));
+        visit(n);
     }
 
     // prints given string to output.cpp

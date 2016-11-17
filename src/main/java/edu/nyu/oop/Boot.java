@@ -48,7 +48,8 @@ public class Boot extends Tool {
                 bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
                 bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
                 bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
-                bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.");
+                bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.").
+                bool("allJavaAst", "allJavaAst", false, "Generates all Java Ast files and put them into test0xxAst.txt.");
     }
 
     @Override
@@ -85,6 +86,21 @@ public class Boot extends Tool {
     public void process(Node n) {
         if (runtime.test("printJavaAst")) {
             runtime.console().format(n).pln().flush();
+            writejavaast(n);
+        }
+
+        if (runtime.test("allJavaAst")) {
+            for(int i=0;!(i>50);i++){
+                String numbber="%03d";
+                String filenumber=String.format(numbber,i);
+                String filepath=XtcProps.getList("input.locations")[1]+"/inputs/test"+filenumber+"/Test"+filenumber+".java";
+                File file=new File(filepath);
+                Node theNode=NodeUtil.parseJavaFile(file);
+//                System.out.println(filepath);
+                writejavaast(theNode);
+            }
+
+
         }
 
         if (runtime.test("printJavaCode")) {
@@ -199,7 +215,7 @@ public class Boot extends Tool {
             runtime.console().format(mutated).pln().flush();
 
             //print formatted mutated node tocppast0xx.txt
-            writecppast(mutated);
+            writejavaast(n);
 
             // make the implementation files
             OutputCppMaker outputMaker = new OutputCppMaker();
@@ -214,12 +230,14 @@ public class Boot extends Tool {
     }
 
 
-    public void writecppast(Node mutated) {
-        //filenumber=00x or 0xx
-        String filenumber=mutated.getNode(0).getNode(1).getString(1).substring(4,7);
-
-        String inputs=XtcProps.getList("input.locations")[1];
-        File cpp=new File(inputs+"/inputs/test"+filenumber+"/cppast"+filenumber+".txt");
+    public void writejavaast(Node mutated) {
+        //filenumber=test00x or 0xx
+//        String filenumber=mutated.getNode(0).getNode(1).getString(1).substring(4,7);
+        String filenumber=mutated.getNode(0).getNode(1).getString(1);
+        String outputs=XtcProps.get("output.location");
+//        String inputs=XtcProps.getList("input.locations")[1];
+//        File cpp=new File(inputs+"/inputs/test"+filenumber+"/cppast"+filenumber+".txt");
+        File cpp=new File(outputs+"/"+filenumber+"Ast.txt");
         PrintWriter cppWriter = null;
         try {
             cppWriter = new PrintWriter(cpp);

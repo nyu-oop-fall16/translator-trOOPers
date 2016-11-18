@@ -210,12 +210,30 @@ public class HeaderASTMaker {
             decs.add("typedef __" + s + "* " + s);
             head.add(decs);
         }
-        /*GNode children = GNode.create("children");
-        for(Object o: childrenArray) {
-            children.add(o);
-        }
-        head.add(children);*/
-
         return head;
+    }
+
+    private void nameMangler(ClassInfo c) {
+        HashMap<String,boolean> nameCheck = new HashMap<String,boolean>();
+        for(MethodInfo m: c.getMethods()) {
+            if(!nameCheck.contains(m.getName())) {
+                nameCheck.put(m.getName(),false);
+            }
+            else {
+                nameCheck.put(m.getName(),true);
+            }
+
+        }
+        for(String s: nameCheck.keySet()) {
+            if(nameCheck.get(s) == true) {
+                for(MethodInfo m: c.getMethods()) {
+                    String mangledName = m.getName();
+                    for(String s: m.getParameters()) {
+                        mangledName+= s;
+                    }
+                    m.setName(mangledName);
+                }
+            }
+        }
     }
 }

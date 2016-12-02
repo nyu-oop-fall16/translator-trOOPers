@@ -33,7 +33,8 @@ public class Test007 {
 //        using namespace std;
 //        using namespace java::lang;
 //
-//        int main(){
+//        int main()
+//        {
 //        B b = new __B();
 //        std::cout << b->__vptr->a << std::endl;
 //        std::cout << b->__vptr->b << std::endl;
@@ -43,25 +44,28 @@ public class Test007 {
 
 
 //output.cpp
-//#include "java_labg.h"
+//#include "java_lang.h"
 //        #include "output.h"
-//        namespace inputs{
-//        namespace test007{
-//        __A::__A():__vptr(&_vtable),a(new __String("A")
-//        {}
+//        namespace inputs
+//        {
+//        namespace test007
+//        {
+//        __A::__A():__vptr(&__vtable),a(new __String("A")) {}
 //
-//        Class __A::__class(){
-//static Class k = new __Class(__rt::literal("inputs.test07.A"), (Class) __Object::__class());
+//        Class __A::__class()
+//        {
+//static Class k = new __Class(__rt::literal("java.lang.A"), (Class) __Object::__class());
 //        return k;
 //        }
 //
 //        __A_VT __A::__vtable;
 //
-//        __B::__B():__vptr(&_vtable),b(new __String("B")
+//        __B::__B():__vptr(&__vtable),b(new __String("B"))
 //        {}
 //
-//        Class __A::__class(){
-//static Class k = new __Class(__rt::literal("inputs.test07.B"), (Class) __A::__class());
+//        Class __B::__class()
+//        {
+//static Class k = new __Class(__rt::literal("java.lang.B"), (Class) __A::__class());
 //        return k;
 //        }
 //

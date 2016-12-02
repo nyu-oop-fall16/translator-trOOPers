@@ -1,7 +1,15 @@
 #include <iostream>
- #include "output.h"
- #include "java_lang.h"
- using namespace std ;
- using namespace java::lang;
- using namespace inputs::test001;
- int main ( ) { A a = new __A ( ) ; std ::cout << a ->__vptr-> toString (a) -> data << std ::endl ; }
+#include "output.h"
+#include "java_lang.h"
+
+using namespace std;
+using namespace java::lang;
+using namespace inputs::test007;
+
+int main()
+{
+    B b = new __B();
+    std::cout << b->a << std::endl;
+    std::cout << b->b << std::endl;
+    return 0;
+}

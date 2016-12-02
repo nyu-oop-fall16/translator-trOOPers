@@ -14,3 +14,34 @@ public class Test009 {
         System.out.println(a.self.toString());
     }
 }
+
+//main.cpp
+//#include <iostream>
+//#include "output.h"
+//        #include "java_lang.h"
+//
+//        using namespace std;
+//        using namespace java::lang;
+//
+//        int main(){
+//        A a = new A();
+//        std::cout << a->self->_vptr->toString(a->self) << std::endl;
+//        return 0;
+//        }
+
+
+//output.cpp
+//namespace inputs{
+//        namespace test007{
+//        __A::__A():__vptr(&_vtable),self(this)
+//        {
+//        }
+//
+//        Class __A::__class(){
+//static Class k=new __Class(__rt::literal("inputs.test07.A"),(Class)__Object::__class());
+//        return k;
+//        }
+//
+//        __A_VT __A::__vtable;
+//        }
+//}

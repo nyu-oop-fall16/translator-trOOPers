@@ -32,15 +32,11 @@ public class Test020 {
 //#include "java_labg.h"
 //        #include "output.h"
 //        namespace inputs{
-//        namespace test017{
-//
-//static int __A::x(A __this){
-//        return 4;
-//        }
+//        namespace test020{
 //
 //
 //        Class __A::__class(){
-//static Class k = new __Class(__rt::literal("inputs.test17.A"), (Class) __Object::__class());
+//static Class k = new __Class(__rt::literal("java.lang.A"), (Class) __Object::__class());
 //        return k;
 //        }
 //

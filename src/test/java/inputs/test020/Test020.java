@@ -13,7 +13,7 @@ public class Test020 {
 }
 
 //main.cpp
-#include <iostream>
+//#include <iostream>
 //#include "output.h"
 //        #include "java_lang.h"
 //

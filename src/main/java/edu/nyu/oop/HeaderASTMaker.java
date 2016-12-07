@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import edu.nyu.oop.util.NodeUtil;
+
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.tree.Visitor;
@@ -49,34 +51,12 @@ public class HeaderASTMaker {
         GNode dataLayout = GNode.create("DLDeclaration");
 
         GNode fields = GNode.create("Fields");
-        GNode constructorDec = GNode.create("ConstructorDeclaration");
+        GNode constructorDecs = GNode.create("ConstructorDeclarations");
         GNode methodDecs = GNode.create("DLMethodDeclarations");
 
         // Fill the field declarations
-        GNode fieldVPTR = GNode.create("FieldDeclaration");
-        GNode vptrMod = GNode.create("Modifiers");
-        GNode vptrType = GNode.create("FieldType");
-        vptrType.add("__" + c.getName() + "_VT*");
-        GNode vptrName = GNode.create("FieldName");
-        vptrName.add("__vptr");
-        GNode vptrInit = GNode.create("Initialization");
-        fieldVPTR.add(vptrMod);
-        fieldVPTR.add(vptrType);
-        fieldVPTR.add(vptrName);
-        fieldVPTR.add(vptrInit);
-
-        GNode fieldVTable = GNode.create("FieldDeclaration");
-        GNode vtFieldMod = GNode.create("Modifiers");
-        vtFieldMod.add("static");
-        GNode vtFieldType = GNode.create("FieldType");
-        vtFieldType.add("__" + c.getName() + "_VT");
-        GNode vtFieldName = GNode.create("FieldName");
-        vtFieldName.add("__vtable");
-        GNode vtFieldInit = GNode.create("Initialization");
-        fieldVTable.add(vtFieldMod);
-        fieldVTable.add(vtFieldType);
-        fieldVTable.add(vtFieldName);
-        fieldVTable.add(vtFieldInit);
+        GNode fieldVPTR = makeFieldVPtr(c);
+        GNode fieldVTable = makeFieldVTable(c);
 
         fields.add(fieldVPTR);
         fields.add(fieldVTable);
@@ -88,10 +68,17 @@ public class HeaderASTMaker {
         }
 
         // Fill the constructor node
-        GNode constructorName = GNode.create("ConstructorName");
-        constructorName.add("__" + c.getName());
-        constructorDec.add(constructorName);
-        constructorDec.add(c.getConstructorParams());
+        for (GNode constructorParam: c.getConstructorParams())  {
+            GNode oneConstructorDec = GNode.create("ConstructorDeclaration");
+            GNode constructorName = GNode.create("ConstructorName");
+            constructorName.add("__" + c.getName());
+            oneConstructorDec.add(constructorName);
+            //oneConstructorDec.add(constructorParam);
+            constructorDecs.add(oneConstructorDec);
+
+            GNode initMethod = makeInitMethod(c.getName(), "static", "__init", "void", constructorParam);
+            methodDecs.add(initMethod);
+        }
 
         // Fill the declarations node
         for (MethodInfo method: c.getMethods()) {
@@ -105,7 +92,7 @@ public class HeaderASTMaker {
 
         //Adding fields, constructor, and method declaration nodes to the DL node
         dataLayout.add(fields);
-        dataLayout.add(constructorDec);
+        dataLayout.add(constructorDecs);
         dataLayout.add(methodDecs);
         return dataLayout;
     }
@@ -129,31 +116,7 @@ public class HeaderASTMaker {
     }
 
     static void makeVTMethod(ClassInfo c, String className) {
-        for(MethodInfo m: c.getMethods()) {
-            if(!methodMap.containsKey(m.getName())) {
-                GNode newMethod = GNode.create("VTMethod");
-
-                GNode methodName = GNode.create("MethodName");
-                GNode rType = GNode.create("ReturnType");
-                GNode implementedClass = GNode.create("ImplementedClass");
-                GNode params = GNode.create("MethodParameters");
-
-                methodName.add(m.getName());
-                rType.add(m.getReturnType().getString(0));
-                implementedClass.add(c.getName());
-                params.add(className);
-                for (String parameter : m.getParameters()) {
-                    params.add(parameter);
-                }
-
-                newMethod.add(methodName);
-                newMethod.add(rType);
-                newMethod.add(implementedClass);
-                newMethod.add(params);
-
-                methodMap.put(m.getName(), newMethod);
-            }
-        }
+       // System.out.println(methodMap.keySet() + " for class " + c.getName());
         if (c.getParent() == null) {}
         else if(c.getParent().equals("Object")) {
             makeVTMethod(object, className);
@@ -161,6 +124,60 @@ public class HeaderASTMaker {
         else {
             makeVTMethod(classes.get(c.getParent()), className);
         }
+        for(MethodInfo m: c.getMethods()) {
+
+            GNode newMethod = GNode.create("VTMethod");
+
+            GNode methodName = GNode.create("MethodName");
+            GNode rType = GNode.create("ReturnType");
+            GNode implementedClass = GNode.create("ImplementedClass");
+            GNode params = GNode.create("MethodParameters");
+
+            methodName.add(m.getName());
+            rType.add(m.getReturnType().getString(0));
+            implementedClass.add(c.getName());
+            params.add(className);
+            for (String parameter : m.getParameters()) {
+                params.add(parameter);
+            }
+
+            newMethod.add(methodName);
+            newMethod.add(rType);
+            newMethod.add(implementedClass);
+            newMethod.add(params);
+
+            methodMap.put(m.getName(), newMethod);
+
+        }
+      //  System.out.println(methodMap.keySet() + " for class " + c.getName());
+
+    }
+
+    static GNode makeInitMethod(String className, String modifier, String name, String returnType, GNode parameters) {
+        GNode newMethod = GNode.create("DLMethodDeclaration");
+
+        GNode mod = GNode.create("Modifier");
+        GNode methodName = GNode.create("MethodName");
+        GNode rType = GNode.create("ReturnType");
+        GNode params = GNode.create("Parameters");
+
+
+        mod.add(modifier);
+        methodName.add(name);
+        rType.add(returnType);
+        if (className != null) {
+            params.add(className);
+        }
+        if(parameters != null) {
+            for (Node parameterType : NodeUtil.dfsAll(parameters, "Type")) {params.add(parameterType);}
+        }
+
+        newMethod.add(mod);
+        newMethod.add(methodName);
+        newMethod.add(rType);
+        newMethod.add(params);
+
+        return newMethod;
     }
 
     static GNode makeDLMethod(String className, String modifier, String name, String returnType, ArrayList<String> parameters) {
@@ -214,9 +231,9 @@ public class HeaderASTMaker {
     }
 
     private void nameMangler(ClassInfo c) {
-        HashMap<String,boolean> nameCheck = new HashMap<String,boolean>();
+        HashMap<String,Boolean> nameCheck = new HashMap<String,Boolean>();
         for(MethodInfo m: c.getMethods()) {
-            if(!nameCheck.contains(m.getName())) {
+            if(!nameCheck.containsKey(m.getName())) {
                 nameCheck.put(m.getName(),false);
             }
             else {
@@ -228,12 +245,43 @@ public class HeaderASTMaker {
             if(nameCheck.get(s) == true) {
                 for(MethodInfo m: c.getMethods()) {
                     String mangledName = m.getName();
-                    for(String s: m.getParameters()) {
-                        mangledName+= s;
+                    for(String st: m.getParameters()) {
+                        mangledName+= st;
                     }
                     m.setName(mangledName);
                 }
             }
         }
+    }
+
+    private GNode makeFieldVPtr(ClassInfo c) {
+        GNode fieldVPTR = GNode.create("FieldDeclaration");
+        GNode vptrMod = GNode.create("Modifiers");
+        GNode vptrType = GNode.create("FieldType");
+        vptrType.add("__" + c.getName() + "_VT*");
+        GNode vptrName = GNode.create("FieldName");
+        vptrName.add("__vptr");
+        GNode vptrInit = GNode.create("Initialization");
+        fieldVPTR.add(vptrMod);
+        fieldVPTR.add(vptrType);
+        fieldVPTR.add(vptrName);
+        fieldVPTR.add(vptrInit);
+        return fieldVPTR;
+    }
+
+    private GNode makeFieldVTable(ClassInfo c) {
+        GNode fieldVTable = GNode.create("FieldDeclaration");
+        GNode vtFieldMod = GNode.create("Modifiers");
+        vtFieldMod.add("static");
+        GNode vtFieldType = GNode.create("FieldType");
+        vtFieldType.add("__" + c.getName() + "_VT");
+        GNode vtFieldName = GNode.create("FieldName");
+        vtFieldName.add("__vtable");
+        GNode vtFieldInit = GNode.create("Initialization");
+        fieldVTable.add(vtFieldMod);
+        fieldVTable.add(vtFieldType);
+        fieldVTable.add(vtFieldName);
+        fieldVTable.add(vtFieldInit);
+        return fieldVTable;
     }
 }

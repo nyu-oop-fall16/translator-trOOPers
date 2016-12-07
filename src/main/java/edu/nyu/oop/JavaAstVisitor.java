@@ -73,14 +73,20 @@ public class JavaAstVisitor extends Visitor {
             }
 
             //Accessing the constructor node of the class and extracting the parameters.
-            Node constructorDec = NodeUtil.dfs(n, "ConstructorDeclaration");
-            if (constructorDec != null) {
-                Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
-                    for(Node formalParam: NodeUtil.dfsAll(formalParams, "FormalParameter")) {
-                    String rtype = NodeUtil.dfs(formalParam, "Type").getNode(0).getString(0);
-                    String name = formalParam.getString(3);
-                    thisClass.addConstructorParams(rtype,name);
+            for (Object constructor: NodeUtil.dfsAll(n, "ConstructorDeclaration")) {
+                Node constructorDec = (Node) constructor;
+                Node oneConstructorParams = GNode.create("Parameters");
+                if (constructorDec != null) {
+                    Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
+                    for (Node formalParam : NodeUtil.dfsAll(formalParams, "FormalParameter")) {
+                        Node param = GNode.create("Parameter");
+                        param.add(NodeUtil.dfs(formalParam, "Type"));
+                        Node pName = GNode.create("Name");
+                        pName.add(formalParam.getString(3));
+                        oneConstructorParams.add(param);
+                    }
                 }
+                thisClass.addConstructor(oneConstructorParams);
             }
 
             //Accessing the extends node of the class

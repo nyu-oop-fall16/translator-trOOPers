@@ -18,7 +18,7 @@ public class AggregatedHeaderPrinter {
         writer = w;
         classesInOrder = new ArrayList();
         printers = new HashMap<String, HeaderClassPrinter>();
-        header = new StringBuffer();
+        header = new StringBuffer("#include \"java_lang.h\"\n\nusing namespace java::lang;\n\n");
     }
 
     // This method saves the number of namespaces in the AST for use in closing the curly braces at the end of the file.

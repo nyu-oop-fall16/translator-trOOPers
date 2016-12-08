@@ -11,7 +11,7 @@ import xtc.tree.Node;
 import xtc.tree.Visitor;
 
 public class HeaderASTMaker {
-    // BuildInfo holds a list of classes that were defined in the Java file.
+    // HeaderASTMaker holds a list of classes that were defined in the Java file.
     private List<Node> packages = new ArrayList<Node>();
     public static HashMap<String,ClassInfo> classes = new HashMap<String,ClassInfo>();
     public String fileName;
@@ -52,59 +52,16 @@ public class HeaderASTMaker {
 
         GNode fields = GNode.create("Fields");
         GNode constructorDecs = GNode.create("ConstructorDeclarations");
-        GNode methodDecs = GNode.create("DLMethodDeclarations");
 
         // Fill the field declarations
-        GNode fieldVPTR = makeFieldVPtr(c);
-        GNode fieldVTable = makeFieldVTable(c);
-
-        fields.add(fieldVPTR);
-        fields.add(fieldVTable);
-
-        for (GNode f: c.getFields()) {
-            GNode fieldDec = GNode.create("FieldDeclaration");
-            fieldDec = f;
-            fields.add(fieldDec);
-        }
-
-        // Add default constructor
-        GNode defaultConstDec = GNode.create("ConstructorDeclaration");
-        GNode constName = GNode.create("ConstructorName");
-        constName.add("__" + c.getName());
-        defaultConstDec.add(constName);
-        GNode constParams = GNode.create("FormalParameters");
-        defaultConstDec.add(constParams);
-        constructorDecs.add(defaultConstDec);
-        GNode defaultInitMethod = makeInitMethod(c.getName(), "static", "__init", "void", null);
-        methodDecs.add(defaultInitMethod);
+        dataLayout.add(makeAstFieldNodes(c));
 
         // Add constructors with parameters
-        for (GNode constructorParam: c.getConstructorParams())  {
-            GNode oneConstructorDec = GNode.create("ConstructorDeclaration");
-            GNode constructorName = GNode.create("ConstructorName");
-            constructorName.add("__" + c.getName());
-            oneConstructorDec.add(constructorName);
-            oneConstructorDec.add(constructorParam);
-            constructorDecs.add(oneConstructorDec);
+        dataLayout.add(makeConstructorNodes(c));
 
-            GNode initMethod = makeInitMethod(c.getName(), "static", "__init", "void", constructorParam);
-            methodDecs.add(initMethod);
-        }
+        // Fill the method declarations node
+        dataLayout.add(makeAstMethodNodes(c));
 
-        // Fill the declarations node
-        for (MethodInfo method: c.getMethods()) {
-            GNode newMethod = makeDLMethod(c.getName(),"static", method.getName(), method.getReturnType().getString(0), method.getParameters());
-            methodDecs.add(newMethod);
-        }
-
-        //Adding the class object
-        GNode classObject = makeDLMethod(null, "static", "__class", "Class", null);
-        methodDecs.add(classObject);
-
-        //Adding fields, constructor, and method declaration nodes to the DL node
-        dataLayout.add(fields);
-        dataLayout.add(constructorDecs);
-        dataLayout.add(methodDecs);
         return dataLayout;
     }
 
@@ -127,12 +84,11 @@ public class HeaderASTMaker {
     }
 
     static void makeVTMethod(ClassInfo c, String className) {
-       // System.out.println(methodMap.keySet() + " for class " + c.getName());
+        // System.out.println(methodMap.keySet() + " for class " + c.getName());
         if (c.getParent() == null) {}
         else if(c.getParent().equals("Object")) {
             makeVTMethod(object, className);
-        }
-        else {
+        } else {
             makeVTMethod(classes.get(c.getParent()), className);
         }
         for(MethodInfo m: c.getMethods()) {
@@ -160,7 +116,7 @@ public class HeaderASTMaker {
             methodMap.put(m.getName(), newMethod);
 
         }
-      //  System.out.println(methodMap.keySet() + " for class " + c.getName());
+        //  System.out.println(methodMap.keySet() + " for class " + c.getName());
 
     }
 
@@ -172,7 +128,6 @@ public class HeaderASTMaker {
         GNode rType = GNode.create("ReturnType");
         GNode params = GNode.create("Parameters");
 
-
         mod.add(modifier);
         methodName.add(name);
         rType.add(returnType);
@@ -180,7 +135,9 @@ public class HeaderASTMaker {
             params.add(className);
         }
         if(parameters != null) {
-            for (Node parameterType : NodeUtil.dfsAll(parameters, "Type")) {params.add(parameterType);}
+            for (Node parameterType : NodeUtil.dfsAll(parameters, "Type")) {
+                params.add(parameterType);
+            }
         }
 
         newMethod.add(mod);
@@ -207,7 +164,9 @@ public class HeaderASTMaker {
             params.add(className);
         }
         if(parameters != null) {
-            for (String parameter:parameters) {params.add(parameter);}
+            for (String parameter:parameters) {
+                params.add(parameter);
+            }
         }
 
         newMethod.add(mod);
@@ -246,8 +205,7 @@ public class HeaderASTMaker {
         for(MethodInfo m: c.getMethods()) {
             if(!nameCheck.containsKey(m.getName())) {
                 nameCheck.put(m.getName(),false);
-            }
-            else {
+            } else {
                 nameCheck.put(m.getName(),true);
             }
 
@@ -265,34 +223,52 @@ public class HeaderASTMaker {
         }
     }
 
-    private GNode makeFieldVPtr(ClassInfo c) {
-        GNode fieldVPTR = GNode.create("FieldDeclaration");
-        GNode vptrMod = GNode.create("Modifiers");
-        GNode vptrType = GNode.create("FieldType");
-        vptrType.add("__" + c.getName() + "_VT*");
-        GNode vptrName = GNode.create("FieldName");
-        vptrName.add("__vptr");
-        GNode vptrInit = GNode.create("Initialization");
-        fieldVPTR.add(vptrMod);
-        fieldVPTR.add(vptrType);
-        fieldVPTR.add(vptrName);
-        fieldVPTR.add(vptrInit);
-        return fieldVPTR;
+    private GNode makeConstructor(ClassInfo c, GNode constructorParam) {
+        GNode constDec = GNode.create("ConstructorDeclaration");
+        GNode constName = GNode.create("ConstructorName");
+        constName.add("__" + c.getName());
+        constDec.add(constName);
+        constDec.add(constructorParam);
+        return constDec;
     }
 
-    private GNode makeFieldVTable(ClassInfo c) {
-        GNode fieldVTable = GNode.create("FieldDeclaration");
-        GNode vtFieldMod = GNode.create("Modifiers");
-        vtFieldMod.add("static");
-        GNode vtFieldType = GNode.create("FieldType");
-        vtFieldType.add("__" + c.getName() + "_VT");
-        GNode vtFieldName = GNode.create("FieldName");
-        vtFieldName.add("__vtable");
-        GNode vtFieldInit = GNode.create("Initialization");
-        fieldVTable.add(vtFieldMod);
-        fieldVTable.add(vtFieldType);
-        fieldVTable.add(vtFieldName);
-        fieldVTable.add(vtFieldInit);
-        return fieldVTable;
+    private GNode makeConstructorNodes(ClassInfo c) {
+        GNode constructorDecs = GNode.create("ConstructorDeclarations");
+
+        for (GNode constructorParam: c.getConstructors())  {
+            constructorDecs.add(makeConstructor(c, constructorParam));
+        }
+
+        return constructorDecs;
     }
+
+    private GNode makeAstFieldNodes(ClassInfo c) {
+        GNode fields = GNode.create("Fields");
+        for (GNode f: c.getFields()) {
+            GNode fieldDec = GNode.create("FieldDeclaration");
+            fieldDec = f;
+            fields.add(fieldDec);
+        }
+        return fields;
+
+    }
+
+    private GNode makeAstMethodNodes(ClassInfo c) {
+        GNode methodDecs = GNode.create("DLMethodDeclarations");
+
+        for (GNode constructor: c.getConstructors()) {
+            GNode initMethod = makeInitMethod(c.getName(), "static", "__init", "void", constructor);
+            methodDecs.add(initMethod);
+        }
+
+        for (MethodInfo method: c.getMethods()) {
+            GNode newMethod = makeDLMethod(c.getName(),"static", method.getName(), method.getReturnType().getString(0), method.getParameters());
+            methodDecs.add(newMethod);
+        }
+
+        GNode classObject = makeDLMethod(null, "static", "__class", "Class", null);
+        methodDecs.add(classObject);
+        return methodDecs;
+    }
+
 }

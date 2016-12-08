@@ -60,20 +60,31 @@ public class HeaderASTMaker {
 
         fields.add(fieldVPTR);
         fields.add(fieldVTable);
-        System.out.println(c.getFields());
+
         for (GNode f: c.getFields()) {
             GNode fieldDec = GNode.create("FieldDeclaration");
             fieldDec = f;
             fields.add(fieldDec);
         }
 
-        // Fill the constructor node
+        // Add default constructor
+        GNode defaultConstDec = GNode.create("ConstructorDeclaration");
+        GNode constName = GNode.create("ConstructorName");
+        constName.add("__" + c.getName());
+        defaultConstDec.add(constName);
+        GNode constParams = GNode.create("FormalParameters");
+        defaultConstDec.add(constParams);
+        constructorDecs.add(defaultConstDec);
+        GNode defaultInitMethod = makeInitMethod(c.getName(), "static", "__init", "void", null);
+        methodDecs.add(defaultInitMethod);
+
+        // Add constructors with parameters
         for (GNode constructorParam: c.getConstructorParams())  {
             GNode oneConstructorDec = GNode.create("ConstructorDeclaration");
             GNode constructorName = GNode.create("ConstructorName");
             constructorName.add("__" + c.getName());
             oneConstructorDec.add(constructorName);
-            //oneConstructorDec.add(constructorParam);
+            oneConstructorDec.add(constructorParam);
             constructorDecs.add(oneConstructorDec);
 
             GNode initMethod = makeInitMethod(c.getName(), "static", "__init", "void", constructorParam);

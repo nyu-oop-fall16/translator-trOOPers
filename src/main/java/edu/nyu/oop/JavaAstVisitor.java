@@ -94,8 +94,7 @@ public class JavaAstVisitor extends Visitor {
             if (extension != null) {
                 String parentClass = NodeUtil.dfs(extension, "Type").getNode(0).getString(0);
                 thisClass.setParent(parentClass);
-            }
-            else {
+            } else {
                 thisClass.setParent("Object");
             }
 
@@ -120,8 +119,7 @@ public class JavaAstVisitor extends Visitor {
         Node typeTest = (Node) n.get(2);
         if (typeTest.getName().equals("VoidType")) {
             thisMethod.setReturnType("void");
-        }
-        else {
+        } else {
             Node identifier = NodeUtil.dfs(typeTest, "QualifiedIdentifier");
             thisMethod.setReturnType(identifier.getString(0));
         }

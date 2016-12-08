@@ -2,6 +2,7 @@ package edu.nyu.oop;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import xtc.tree.GNode;
@@ -15,7 +16,7 @@ public class HeaderASTMaker {
     public String fileName;
     public static ClassInfo object = ClassInfo.buildObject();
 
-    public static HashMap <String,GNode> methodMap = new HashMap<String,GNode>();
+    public static LinkedHashMap <String,GNode> methodMap = new LinkedHashMap<String,GNode>();
 
     public GNode makeAST() {
         GNode completeAST = GNode.create("AST");
@@ -80,7 +81,7 @@ public class HeaderASTMaker {
 
         fields.add(fieldVPTR);
         fields.add(fieldVTable);
-        System.out.println(c.getFields());
+        //System.out.println(c.getFields());
         for (GNode f: c.getFields()) {
             GNode fieldDec = GNode.create("FieldDeclaration");
             fieldDec = f;
@@ -118,6 +119,7 @@ public class HeaderASTMaker {
         //Fill the VTMethodDeclarations node
         makeVTMethod(c,c.getName());
 
+        //System.out.println("The completed memory map looks as follows: " + methodMap.keySet());
         for(String s: methodMap.keySet()) {
             vT.add(methodMap.get(s));
         }
@@ -129,37 +131,38 @@ public class HeaderASTMaker {
     }
 
     static void makeVTMethod(ClassInfo c, String className) {
-        for(MethodInfo m: c.getMethods()) {
-            if(!methodMap.containsKey(m.getName())) {
-                GNode newMethod = GNode.create("VTMethod");
-
-                GNode methodName = GNode.create("MethodName");
-                GNode rType = GNode.create("ReturnType");
-                GNode implementedClass = GNode.create("ImplementedClass");
-                GNode params = GNode.create("MethodParameters");
-
-                methodName.add(m.getName());
-                rType.add(m.getReturnType().getString(0));
-                implementedClass.add(c.getName());
-                params.add(className);
-                for (String parameter : m.getParameters()) {
-                    params.add(parameter);
-                }
-
-                newMethod.add(methodName);
-                newMethod.add(rType);
-                newMethod.add(implementedClass);
-                newMethod.add(params);
-
-                methodMap.put(m.getName(), newMethod);
-            }
-        }
         if (c.getParent() == null) {}
         else if(c.getParent().equals("Object")) {
             makeVTMethod(object, className);
         }
         else {
             makeVTMethod(classes.get(c.getParent()), className);
+        }
+        for(MethodInfo m: c.getMethods()) {
+            GNode newMethod = GNode.create("VTMethod");
+
+            GNode methodName = GNode.create("MethodName");
+            GNode rType = GNode.create("ReturnType");
+            GNode implementedClass = GNode.create("ImplementedClass");
+            GNode params = GNode.create("MethodParameters");
+
+            methodName.add(m.getName());
+            rType.add(m.getReturnType().getString(0));
+            implementedClass.add(c.getName());
+            params.add(className);
+            for (String parameter : m.getParameters()) {
+                params.add(parameter);
+            }
+
+            newMethod.add(methodName);
+            newMethod.add(rType);
+            newMethod.add(implementedClass);
+            newMethod.add(params);
+
+            methodMap.put(m.getName(), newMethod);
+
+//            System.out.println("The method " + m.getName() + " has been added to " + className + " by " + c.getName());
+//            System.out.println("Now methodMap looks like: " + methodMap.keySet());
         }
     }
 

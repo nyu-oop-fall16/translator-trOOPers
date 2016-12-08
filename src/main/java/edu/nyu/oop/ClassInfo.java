@@ -1,157 +1,169 @@
 package edu.nyu.oop;
 
-import edu.nyu.oop.util.NodeUtil;
-import org.slf4j.Logger;
-
 import xtc.tree.GNode;
 import xtc.tree.Node;
-import xtc.tree.Visitor;
 
-import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.HashMap;
 
-public class JavaAstVisitor extends Visitor {
-    private Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
+/*This class object is designed to hold information about a particular class including:
+    1) the name of the class
+    2) the modifiers of the class
+    3) the types of the parameters
+    4) the field types and names
+    5) a list of the class' methods
+*/
 
-    private HeaderASTMaker information = new HeaderASTMaker();
+public class ClassInfo {
+    private String name;
+    private String parent;
+    private ArrayList<GNode> constructors = new ArrayList<GNode>();
+    private ArrayList<GNode> fields = new ArrayList<GNode>();
+    private ArrayList<MethodInfo> methods = new ArrayList<MethodInfo>();
 
-    //The following visit_____ methods will visit the nodes of the Java AST and fill out the BuildInfo object defined above.
-    //This information held in the BuildInfo class will then be used to create the AST for the header file and the cpp file.
-
-    public String currentClass;
-    public String currentMethod;
-
-    //visitPackageDeclaration will visit each package declaration node and get the file name from the test being used. This is a
-    //placeholder and will change when we incorporate dependencies
-    public void visitPackageDeclaration(GNode n) {
-        information.addPackage(n);
-        information.fileName = n.getNode(1).getString(1);
+    public ClassInfo() {
+        constructors.add(GNode.create("FormalParameters"));
+        fields.add(makeFieldVPtr());
+        fields.add(makeFieldVTable());
     }
 
-    public void visitClassDeclaration(GNode n) {
-        currentClass = n.getString(1);
-        if (!currentClass.equals("T" + information.fileName.substring(1))) {
+    //Set and get methods for the information held within an headerClass object.
 
-            ClassInfo thisClass = new ClassInfo();
-            thisClass.setName(currentClass);
-
-            //Accessing the classBody node, iterating through it children, and processing the FieldDeclaration Nodes.
-            Node classBody = NodeUtil.dfs(n, "ClassBody");
-            if (classBody != null) {
-                Iterator<Object> fieldCheck = classBody.iterator();
-                while (fieldCheck.hasNext()) {
-                    Object child = fieldCheck.next();
-                    if (child instanceof  Node) {
-                        Node nodeChild = (Node)child;
-                        if (nodeChild.getName().equals("FieldDeclaration")) {
-                            GNode modifiers = GNode.create("Modifiers");
-                            String type;
-                            String name;
-                            String initialization = "";
-
-                            Node mods = NodeUtil.dfs(nodeChild, "Modifiers");
-                            for(Node modifier: NodeUtil.dfsAll(mods, "Modifier")) {
-                                modifiers.add(modifier.getString(0));
-                            }
-
-                            Node typeNode = NodeUtil.dfs(nodeChild, "Type");
-                            type = typeNode.getNode(0).getString(0);
-                            Node decs = NodeUtil.dfs(nodeChild, "Declarators");
-                            name = decs.getNode(0).getString(0);
-                            if (decs != null) {
-                                Node init = decs.getNode(0).getNode(2);
-                                if (init != null) {
-                                    initialization = init.getString(0);
-                                }
-                            }
-
-                            thisClass.addField(modifiers, type, name, initialization);
-                        }
-
-                    }
-                }
-            }
-
-            //Accessing the constructor node of the class and extracting the parameters.
-            for (Object constructor: NodeUtil.dfsAll(n, "ConstructorDeclaration")) {
-                Node constructorDec = (Node) constructor;
-                Node oneConstructorParams = GNode.create("Parameters");
-                if (constructorDec != null) {
-                    Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
-                    for (Node formalParam : NodeUtil.dfsAll(formalParams, "FormalParameter")) {
-                        Node param = GNode.create("Parameter");
-                        param.add(NodeUtil.dfs(formalParam, "Type"));
-                        Node pName = GNode.create("Name");
-                        pName.add(formalParam.getString(3));
-                        oneConstructorParams.add(param);
-                    }
-                }
-                thisClass.addConstructor(oneConstructorParams);
-            }
-
-            //Accessing the extends node of the class
-            Node extension = NodeUtil.dfs(n, "Extension");
-            if (extension != null) {
-                String parentClass = NodeUtil.dfs(extension, "Type").getNode(0).getString(0);
-                thisClass.setParent(parentClass);
-            }
-            else {
-                thisClass.setParent("Object");
-            }
-
-            information.classes.put(currentClass, thisClass);
-            visit(n);
-        }
+    public void setName(String n) {
+        name = n;
+    }
+    public String getName() {
+        return name;
     }
 
-    public void visitMethodDeclaration(GNode n) {
-        currentMethod = n.getString(3);
+    public void setParent(String p) {
+        parent = p;
+    }
+    public String getParent() {
+        return parent;
+    }
 
-        MethodInfo thisMethod = new MethodInfo();
-        thisMethod.setName(currentMethod);
+    public void addField(GNode modifiers, String type, String name, String initialization) {
+        GNode field = GNode.create("FieldDeclaration");
 
-        // Find modifiers and add them to the ClassInfo Object
-        Node modifiers = NodeUtil.dfs(n, "Modifiers");
-        for (Node m : NodeUtil.dfsAll(modifiers, "Modifier")) {
-            thisMethod.addModifier(m.getString(0));
-        }
+        field.add(modifiers);
 
-        // Find return type of method and add it to the MethodInfo object (if void, then add VoidType)
-        Node typeTest = NodeUtil.dfs(n, "Type");
-        if (typeTest == null) {
-            thisMethod.setReturnType("void");
-        }
-        else {
-            Node identifier = NodeUtil.dfs(typeTest, "QualifiedIdentifier");
-            thisMethod.setReturnType(identifier.getString(0));
-        }
+        GNode fieldType = GNode.create("FieldType");
+        fieldType.add(type);
+        field.add(fieldType);
 
-        // Set parameters of the method
-        Node parameter = NodeUtil.dfs(n, "FormalParameters");
-        for (Node p : NodeUtil.dfsAll(parameter, "FormalParameter")) {
-            Node type = NodeUtil.dfs(p, "Type");
-            if (type == null) {
-                thisMethod.addParameter("void");
-            } else {
-                Node identifier = NodeUtil.dfs(type, "QualifiedIdentifier");
-                thisMethod.addParameter(identifier.getString(0));
+        GNode fieldName = GNode.create("FieldName");
+        fieldName.add(name);
+        field.add(fieldName);
+
+        GNode fieldInitialization = GNode.create("FieldInitialization");
+        fieldInitialization.add(initialization);
+        field.add(fieldInitialization);
+
+        fields.add(field);
+
+    }
+    public ArrayList<GNode> getFields() {
+        return fields;
+    }
+
+    public void addMethod(MethodInfo method) {
+        methods.add(method);
+    }
+    public ArrayList<MethodInfo> getMethods() {
+        return methods;
+    }
+    public MethodInfo getMethod(String name) {
+        MethodInfo method = new MethodInfo();
+        for(MethodInfo m: methods) {
+            if (m.getName().equals(name)) {
+                method = m;
             }
         }
-
-        information.classes.get(currentClass).addMethod(thisMethod);
+        return method;
+    }
+    public boolean hasMethod(String name) {
+        boolean has = false;
+        for(MethodInfo m: methods) {
+            if (m.getName().equals(name)) {
+                has = true;
+            }
+        }
+        return has;
     }
 
-    public void visit(Node n) {
-        for (Object o : n) if (o instanceof Node) dispatch((Node) o);
+    public void addConstructor(Node constructor) {
+        constructors.add((GNode) constructor);
     }
 
-    public HeaderASTMaker getBuildInfo(Node n) {
-        super.dispatch(n);
-        return information;
+    public ArrayList<GNode> getConstructors() {
+        return this.constructors;
     }
 
-    public HeaderASTMaker getASTInfo() {
-        return information;
+    private GNode makeFieldVPtr() {
+        GNode fieldVPTR = GNode.create("FieldDeclaration");
+        GNode vptrMod = GNode.create("Modifiers");
+        GNode vptrType = GNode.create("FieldType");
+        vptrType.add("__" + name + "_VT*");
+        GNode vptrName = GNode.create("FieldName");
+        vptrName.add("__vptr");
+        GNode vptrInit = GNode.create("Initialization");
+        fieldVPTR.add(vptrMod);
+        fieldVPTR.add(vptrType);
+        fieldVPTR.add(vptrName);
+        fieldVPTR.add(vptrInit);
+        return fieldVPTR;
     }
 
+    private GNode makeFieldVTable() {
+        GNode fieldVTable = GNode.create("FieldDeclaration");
+        GNode vtFieldMod = GNode.create("Modifiers");
+        vtFieldMod.add("static");
+        GNode vtFieldType = GNode.create("FieldType");
+        vtFieldType.add("__" + name + "_VT");
+        GNode vtFieldName = GNode.create("FieldName");
+        vtFieldName.add("__vtable");
+        GNode vtFieldInit = GNode.create("Initialization");
+        fieldVTable.add(vtFieldMod);
+        fieldVTable.add(vtFieldType);
+        fieldVTable.add(vtFieldName);
+        fieldVTable.add(vtFieldInit);
+        return fieldVTable;
+    }
+
+    public static ClassInfo buildObject() {
+        ClassInfo object = new ClassInfo();
+        object.name = "Object";
+        object.parent = null;
+
+        MethodInfo isa = new MethodInfo();
+        isa.setReturnType("Class");
+        isa.setName("isa");
+
+        MethodInfo hashCode = new MethodInfo();
+        hashCode.setReturnType("int");
+        hashCode.setName("hashCode");
+
+        MethodInfo equals = new MethodInfo();
+        equals.setReturnType("bool");
+        equals.setName("equals");
+        equals.addParameter("Object");
+
+        MethodInfo getClass = new MethodInfo();
+        getClass.setReturnType("Class");
+        getClass.setName("getClass");
+
+        MethodInfo toString = new MethodInfo();
+        toString.setReturnType("String");
+        toString.setName("toString");
+
+        object.addMethod(isa);
+        object.addMethod(hashCode);
+        object.addMethod(equals);
+        object.addMethod(getClass);
+        object.addMethod(toString);
+
+        return object;
+    }
 }

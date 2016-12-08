@@ -111,8 +111,8 @@ public class JavaAstVisitor extends Visitor {
         }
 
         // Find return type of method and add it to the MethodInfo object (if void, then add VoidType)
-        Node typeTest = NodeUtil.dfs(n, "Type");
-        if (typeTest == null) {
+        Node typeTest = (Node) n.get(2);
+        if (typeTest.getName().equals("VoidType")) {
             thisMethod.setReturnType("void");
         }
         else {

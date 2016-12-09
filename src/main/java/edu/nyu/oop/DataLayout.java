@@ -12,9 +12,12 @@ import java.util.ArrayList;
 public class DataLayout {
     ClassInfo c;
     GNode root;
+    private static HashMap<String,ClassInfo> classes = new HashMap<String,ClassInfo>();
+    ArrayList<GNode> fieldMap = new ArrayList<GNode>();
 
-    public DataLayout(ClassInfo c) {
+    public DataLayout(ClassInfo c, HashMap<String, ClassInfo> classes) {
         this.c = c;
+        this.classes = classes;
         root = GNode.create("DLDeclaration");
         createDataLayout(c);
     }
@@ -37,12 +40,30 @@ public class DataLayout {
         root.add(makeAstDLMethodNodes(c));
     }
 
+    // Recursive method that deals with the inheritance of class fields.
+    private void fillFieldMap(ClassInfo c) {
+        if(c.getParent() != null && !c.getParent().equals("Object")) {
+            fillFieldMap(classes.get(c.getParent()));
+        }
+        for(int i = 2; i < c.getFields().size(); i++) {
+            fieldMap.add(c.getFields().get(i));
+        }
+    }
+
     // Creates and returns the node encapsulating all of the fields of the class
     private GNode makeAstFieldNodes(ClassInfo c) {
+        if(!c.getParent().equals("Object") && c.getParent() != null) {
+            fillFieldMap(classes.get(c.getParent()));
+        }
         GNode fields = GNode.create("Fields");
         for (GNode f: c.getFields()) {
             GNode fieldDec = GNode.create("FieldDeclaration");
             fieldDec = f;
+            fields.add(fieldDec);
+        }
+        for(GNode n: fieldMap) {
+            GNode fieldDec = GNode.create("FieldDeclaration");
+            fieldDec = n;
             fields.add(fieldDec);
         }
         return fields;

@@ -25,15 +25,16 @@ public class JavaAstVisitor extends Visitor {
     //placeholder and will change when we incorporate dependencies
     public void visitPackageDeclaration(GNode n) {
         information.addPackage(n);
-        information.fileName = n.getNode(1).getString(1);
+        information.setFileName(n.getNode(1).getString(1));
     }
 
     public void visitClassDeclaration(GNode n) {
         currentClass = n.getString(1);
-        if (!currentClass.equals("T" + information.fileName.substring(1))) {
+        if (!currentClass.equals("T" + information.getFileName().substring(1))) {
 
             ClassInfo thisClass = new ClassInfo();
             thisClass.setName(currentClass);
+            thisClass.initialize();
 
             //Accessing the classBody node, iterating through it children, and processing the FieldDeclaration Nodes.
             Node classBody = NodeUtil.dfs(n, "ClassBody");
@@ -47,7 +48,7 @@ public class JavaAstVisitor extends Visitor {
                             GNode modifiers = GNode.create("Modifiers");
                             String type;
                             String name;
-                            String initialization = "";
+                            String initialization = null;
 
                             Node mods = NodeUtil.dfs(nodeChild, "Modifiers");
                             for(Node modifier: NodeUtil.dfsAll(mods, "Modifier")) {
@@ -73,14 +74,20 @@ public class JavaAstVisitor extends Visitor {
             }
 
             //Accessing the constructor node of the class and extracting the parameters.
-            Node constructorDec = NodeUtil.dfs(n, "ConstructorDeclaration");
-            if (constructorDec != null) {
-                Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
-                    for(Node formalParam: NodeUtil.dfsAll(formalParams, "FormalParameter")) {
-                    String rtype = NodeUtil.dfs(formalParam, "Type").getNode(0).getString(0);
-                    String name = formalParam.getString(3);
-                    thisClass.addConstructorParams(rtype,name);
+            for (Object constructor: NodeUtil.dfsAll(n, "ConstructorDeclaration")) {
+                Node constructorDec = (Node) constructor;
+                Node oneConstructorParams = GNode.create("Parameters");
+                if (constructorDec != null) {
+                    Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
+                    for (Node formalParam : NodeUtil.dfsAll(formalParams, "FormalParameter")) {
+                        Node param = GNode.create("Parameter");
+                        param.add(NodeUtil.dfs(formalParam, "Type"));
+                        Node pName = GNode.create("Name");
+                        pName.add(formalParam.getString(3));
+                        oneConstructorParams.add(param);
+                    }
                 }
+                thisClass.addConstructor(oneConstructorParams);
             }
 
             //Accessing the extends node of the class
@@ -88,12 +95,11 @@ public class JavaAstVisitor extends Visitor {
             if (extension != null) {
                 String parentClass = NodeUtil.dfs(extension, "Type").getNode(0).getString(0);
                 thisClass.setParent(parentClass);
-            }
-            else {
+            } else {
                 thisClass.setParent("Object");
             }
 
-            information.classes.put(currentClass, thisClass);
+            information.addClass(currentClass, thisClass);
             visit(n);
         }
     }
@@ -111,11 +117,10 @@ public class JavaAstVisitor extends Visitor {
         }
 
         // Find return type of method and add it to the MethodInfo object (if void, then add VoidType)
-        Node typeTest = NodeUtil.dfs(n, "Type");
-        if (typeTest == null) {
+        Node typeTest = (Node) n.get(2);
+        if (typeTest.getName().equals("VoidType")) {
             thisMethod.setReturnType("void");
-        }
-        else {
+        } else {
             Node identifier = NodeUtil.dfs(typeTest, "QualifiedIdentifier");
             thisMethod.setReturnType(identifier.getString(0));
         }
@@ -132,7 +137,7 @@ public class JavaAstVisitor extends Visitor {
             }
         }
 
-        information.classes.get(currentClass).addMethod(thisMethod);
+        information.addMethodToClass(currentClass, thisMethod);
     }
 
     public void visit(Node n) {

@@ -88,10 +88,10 @@ public class HeaderFileMaker extends Visitor {
         for (int i = 0; i < n.size(); i++) {
             Node fieldInfo = n.getNode(i);
             for (int j = 0; j < fieldInfo.size(); j++) {
-                if (!fieldInfo.isEmpty() && !fieldInfo.getString(j).equals("private") && !fieldInfo.getName().equals("FieldInitialization")) {
+                if (!fieldInfo.isEmpty() && !fieldInfo.getName().equals("FieldInitialization") && !fieldInfo.getString(j).equals("private")) {
                     hcp.addToDL(fieldInfo.getString(j));
                 }
-                if (fieldInfo.getName().equals("FieldInitialization") && !fieldInfo.getString(j).equals("")) {
+                if (fieldInfo.getName().equals("FieldInitialization") && fieldInfo.get(0) != null) {
                     hcp.addToDL("= " + fieldInfo.getString(j));
                 }
             }

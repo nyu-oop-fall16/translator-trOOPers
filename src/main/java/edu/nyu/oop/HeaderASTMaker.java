@@ -32,7 +32,7 @@ public class HeaderASTMaker {
             className.add("__" + s);
             thisClass.add(className);
 
-            DataLayout dl = new DataLayout(c);
+            DataLayout dl = new DataLayout(c,classes);
             VTable vt = new VTable(c, classes);
 
             thisClass.add(dl.getRoot());

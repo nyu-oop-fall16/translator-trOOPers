@@ -81,9 +81,13 @@ public class JavaAstVisitor extends Visitor {
                     Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
                     for (Node formalParam : NodeUtil.dfsAll(formalParams, "FormalParameter")) {
                         Node param = GNode.create("Parameter");
-                        param.add(NodeUtil.dfs(formalParam, "Type"));
+                        Node pType = (Node) NodeUtil.dfs(formalParam, "Type").get(0);
+                        Node type = GNode.create("Type");
+                        type.add(pType.getString(0));
+                        param.add(type);
                         Node pName = GNode.create("Name");
                         pName.add(formalParam.getString(3));
+                        param.add(pName);
                         oneConstructorParams.add(param);
                     }
                 }
@@ -122,6 +126,9 @@ public class JavaAstVisitor extends Visitor {
             thisMethod.setReturnType("void");
         } else {
             Node identifier = NodeUtil.dfs(typeTest, "QualifiedIdentifier");
+            if (identifier == null) {
+                identifier = NodeUtil.dfs(typeTest, "PrimitiveType");
+            }
             thisMethod.setReturnType(identifier.getString(0));
         }
 
@@ -132,7 +139,7 @@ public class JavaAstVisitor extends Visitor {
             if (type == null) {
                 thisMethod.addParameter("void");
             } else {
-                Node identifier = NodeUtil.dfs(type, "QualifiedIdentifier");
+                Node identifier = (Node) type.get(0);
                 thisMethod.addParameter(identifier.getString(0));
             }
         }

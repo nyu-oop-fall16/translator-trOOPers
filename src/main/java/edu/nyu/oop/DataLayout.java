@@ -106,7 +106,7 @@ public class DataLayout {
         }
         if(parameters != null) {
             for (Node parameterType : NodeUtil.dfsAll(parameters, "Type")) {
-                params.add(parameterType);
+                params.add(parameterType.getString(0));
             }
         }
 

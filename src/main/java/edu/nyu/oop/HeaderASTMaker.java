@@ -48,7 +48,6 @@ public class HeaderASTMaker {
         packages.add(n);
     }
 
-
     // Gets the HashMap of classes belonging to this AST
     public HashMap<String, ClassInfo> getClasses() {
         return classes;

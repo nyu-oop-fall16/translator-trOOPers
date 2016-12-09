@@ -28,3 +28,50 @@ public class Test006 {
         System.out.println(a.getFld());
     }
 }
+
+
+
+//main.cpp
+//#include <iostream>
+//#include "output.h"
+//        #include "java_lang.h"
+//
+//        using namespace std;
+//        using namespace java::lang;
+//
+//        int main()
+//        {
+//        A a = new __A();
+//        a->_vptr->almostSetFld(a,new __String("B"));
+//        std::cout << a->_vptr->getFld(a) << std::endl;
+//        a->_vptr->setFld(a,new __String("B"));
+//        std::cout << a->_vptr->getFld(a) << std::endl;
+//        return 0;
+//        }
+
+
+
+//output.cpp
+//#include "java_lang.h"
+//        #include "output.h"
+//        namespace inputs
+//        {
+//        namespace test006
+//        {
+//        __A::__A():__vptr(&__vtable) {}
+//
+//
+//
+//
+//        Class __A::__class()
+//        {
+//static Class k = new __Class(__rt::literal("java.lang.A"), (Class) __Object::__class());
+//        return k;
+//        }
+//
+//        __A_VT __A::__vtable;
+//
+//
+//
+//        }
+//        }

@@ -56,7 +56,7 @@ namespace inputs{
         A::__A() : __vptr(&__vtable), some(null);
 
         void A::printOther(A __this, A other){
-            cout << __this->__vtable->toString(other) << endl;
+            cout << __this->__vptr->toString(other) << endl;
         }
 
         Class __A::__class(){
@@ -70,7 +70,7 @@ namespace inputs{
         B::__B() : __vptr(&__vtable), some(null);
 
         void B::printOther(B __this, A other){
-            cout << __this->__vtable->toString(other) << endl;
+            cout << __this->__vptr->toString(other) << endl;
         }
 
         String B::toString(B __this){

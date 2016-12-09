@@ -60,8 +60,18 @@ public class Test006 {
 //        {
 //        __A::__A():__vptr(&__vtable) {}
 //
+//        void setFld(A __this, String f){
+//        __this->fld=f;
+//        }
 //
+//        void almostSetFld(A __this, String f){
+//        String fld;
+//        fld=f;
+//        }
 //
+//        String getFld(A __this){
+//        return __this->fld;
+//        }
 //
 //        Class __A::__class()
 //        {

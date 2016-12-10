@@ -96,7 +96,9 @@ public class Test010 {
 //        __A_VT __A::__vtable;
 
 //        __B1::__B1():__vptr(&_vtable)
-//        {        }
+//        {
+//?
+//      }
 
 //        Class __B1::__class(){
 // static Class k = new __Class(__rt::literal("inputs.test010.B1"), (Class) __A::__class());

@@ -77,8 +77,17 @@ public class Test010 {
 //        __A::__A():__vptr(&_vtable)
 //        {}
 
-//        __A::??
-
+//        void __A::setA(A __this, String x){
+//         __this->a=x;
+//         }
+//        void __A::printOther(A __this, A other){
+//          scour<<other->toString(other)->data<<endls;
+//          }
+//
+//          String toString(A __this){
+//          return __this->a;
+//           }
+//
 //        Class __A::__class(){
 // static Class k = new __Class(__rt::literal("inputs.test07.A"), (Class) __Object::__class());
 //        return k;
@@ -86,17 +95,37 @@ public class Test010 {
 
 //        __A_VT __A::__vtable;
 
-//        __B::__B():__vptr(&_vtable),b(new __String("B"),a(new __String("B")
-//        {
-//        std::cout << a <<std::endl;
-//        }
+//        __B1::__B1():__vptr(&_vtable)
+//        {        }
 
-//        Class __A::__class(){
-// static Class k = new __Class(__rt::literal("inputs.test07.B"), (Class) __A::__class());
+//        Class __B1::__class(){
+// static Class k = new __Class(__rt::literal("inputs.test010.B1"), (Class) __A::__class());
 //        return k;
 //        }
 
-//        __B_VT __B::__vtable;
+//        __B1_VT __B1::__vtable;
+
+
+//        __B2::__B2():__vptr(&_vtable)
+//        {        }
+
+//        Class __B2::__class(){
+// static Class k = new __Class(__rt::literal("inputs.test010.B2"), (Class) __A::__class());
+//        return k;
+//        }
+
+//        __B2_VT __B2::__vtable;
+
+//        __C::__C():__vptr(&_vtable)
+//        {        }
+
+//        Class __C::__class(){
+// static Class k = new __Class(__rt::literal("inputs.test010.C"), (Class) __B1::__class());
+//        return k;
+//        }
+
+//        __C_VT __C::__vtable;
+
 
 //        }
 //        }

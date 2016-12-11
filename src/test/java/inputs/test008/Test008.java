@@ -54,7 +54,7 @@ public class Test008 {
 //        }
 //
 //        Class __A::__class(){
-//static Class k = new __Class(__rt::literal("inputs.test07.A"), (Class) __Object::__class());
+//static Class k = new __Class(__rt::literal("java.lang.A"), (Class) __Object::__class());
 //        return k;
 //        }
 //
@@ -66,7 +66,7 @@ public class Test008 {
 //        }
 //
 //        Class __A::__class(){
-//static Class k = new __Class(__rt::literal("inputs.test07.B"), (Class) __A::__class());
+//static Class k = new __Class(__rt::literal("java.lang.B"), (Class) __A::__class());
 //        return k;
 //        }
 //

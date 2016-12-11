@@ -70,6 +70,7 @@ public class JavaFiveImportParser {
             private List<GNode> loadNodesFromDirectory(String relPath) {
                 List<GNode> sources = new LinkedList<GNode>();
                 for(String l : inputLocations) {
+//                    if(l.equals("src/test/java")){
                     String absPath = System.getProperty("user.dir") + File.separator + l + File.separator + relPath;
                     Set<File> files = loadFilesInDirectory(absPath);
                     if(files != null) {
@@ -80,6 +81,7 @@ public class JavaFiveImportParser {
                         break; // stop at the first input location containing the package of the primary source
                     }
                 }
+//                }
                 return sources;
             }
 

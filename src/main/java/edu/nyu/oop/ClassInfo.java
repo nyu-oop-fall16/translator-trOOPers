@@ -23,7 +23,6 @@ public class ClassInfo {
     private ArrayList<MethodInfo> methods = new ArrayList<MethodInfo>();
 
     public void initialize() {
-        constructors.add(GNode.create("Parameters"));
         fields.add(makeFieldVPtr());
         fields.add(makeFieldVTable());
     }

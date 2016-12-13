@@ -9,6 +9,7 @@ import xtc.tree.Visitor;
 
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.List;
 
 public class JavaAstVisitor extends Visitor {
     private Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
@@ -74,24 +75,31 @@ public class JavaAstVisitor extends Visitor {
             }
 
             //Accessing the constructor node of the class and extracting the parameters.
-            for (Object constructor: NodeUtil.dfsAll(n, "ConstructorDeclaration")) {
-                Node constructorDec = (Node) constructor;
-                Node oneConstructorParams = GNode.create("Parameters");
-                if (constructorDec != null) {
-                    Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
-                    for (Node formalParam : NodeUtil.dfsAll(formalParams, "FormalParameter")) {
-                        Node param = GNode.create("Parameter");
-                        Node pType = (Node) NodeUtil.dfs(formalParam, "Type").get(0);
-                        Node type = GNode.create("Type");
-                        type.add(pType.getString(0));
-                        param.add(type);
-                        Node pName = GNode.create("Name");
-                        pName.add(formalParam.getString(3));
-                        param.add(pName);
-                        oneConstructorParams.add(param);
+            List<Node> constructors = NodeUtil.dfsAll(n, "ConstructorDeclaration");
+            if (constructors.isEmpty()) {
+                thisClass.addConstructor(GNode.create("Parameters"));
+            }
+
+            else {
+                for (Object constructor: constructors) {
+                    Node constructorDec = (Node) constructor;
+                    Node oneConstructorParams = GNode.create("Parameters");
+                    if (constructorDec != null) {
+                        Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
+                        for (Node formalParam : NodeUtil.dfsAll(formalParams, "FormalParameter")) {
+                            Node param = GNode.create("Parameter");
+                            Node pType = (Node) NodeUtil.dfs(formalParam, "Type").get(0);
+                            Node type = GNode.create("Type");
+                            type.add(pType.getString(0));
+                            param.add(type);
+                            Node pName = GNode.create("Name");
+                            pName.add(formalParam.getString(3));
+                            param.add(pName);
+                            oneConstructorParams.add(param);
+                        }
                     }
+                    thisClass.addConstructor(oneConstructorParams);
                 }
-                thisClass.addConstructor(oneConstructorParams);
             }
 
             //Accessing the extends node of the class

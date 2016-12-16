@@ -14,7 +14,7 @@ import xtc.tree.Visitor;
 public class HeaderASTMaker {
     // HeaderASTMaker holds a list of classes that were defined in the Java file.
     private List<Node> packages = new ArrayList<Node>();
-    private static HashMap<String,ClassInfo> classes = new HashMap<String,ClassInfo>();
+    private static LinkedHashMap<String,ClassInfo> classes = new LinkedHashMap<String,ClassInfo>();
     private String fileName;
 
     // Makes the AST and returns the root node
@@ -25,14 +25,14 @@ public class HeaderASTMaker {
 
         for (String s: classes.keySet()) {
             ClassInfo c = classes.get(s);
-            // mangleNames(c);
+            mangleMethodNames(c);
 
             GNode thisClass = GNode.create("ClassDeclaration");
             GNode className = GNode.create("ClassName");
             className.add("__" + s);
             thisClass.add(className);
 
-            DataLayout dl = new DataLayout(c,classes);
+            DataLayout dl = new DataLayout(c, classes);
             VTable vt = new VTable(c, classes);
 
             thisClass.add(dl.getRoot());
@@ -49,7 +49,7 @@ public class HeaderASTMaker {
     }
 
     // Gets the HashMap of classes belonging to this AST
-    public HashMap<String, ClassInfo> getClasses() {
+    public LinkedHashMap<String, ClassInfo> getClasses() {
         return classes;
     }
 

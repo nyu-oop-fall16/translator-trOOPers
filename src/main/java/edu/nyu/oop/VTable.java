@@ -2,20 +2,17 @@ package edu.nyu.oop;
 
 import xtc.tree.GNode;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-/**
- * Created by gina on 12/8/16.
- */
+
 public class VTable {
     ClassInfo c;
     GNode root;
     private static ClassInfo object = ClassInfo.buildObject();
-    private static HashMap<String,ClassInfo> classes = new HashMap<String,ClassInfo>();
+    private static LinkedHashMap<String,ClassInfo> classes = new LinkedHashMap<String,ClassInfo>();
     private static LinkedHashMap<String,GNode> methodMap = new LinkedHashMap<String,GNode>();
 
-    public VTable(ClassInfo c, HashMap<String, ClassInfo> classes) {
+    public VTable(ClassInfo c, LinkedHashMap<String, ClassInfo> classes) {
         this.c = c;
         this.classes = classes;
         root = GNode.create("VTDeclaration");

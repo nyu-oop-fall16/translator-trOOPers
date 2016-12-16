@@ -88,10 +88,10 @@ public class HeaderFileMaker extends Visitor {
         for (int i = 0; i < n.size(); i++) {
             Node fieldInfo = n.getNode(i);
             for (int j = 0; j < fieldInfo.size(); j++) {
-                if (!fieldInfo.isEmpty() && !fieldInfo.getString(j).equals("private") && !fieldInfo.getName().equals("FieldInitialization")) {
+                if (!fieldInfo.isEmpty() && !fieldInfo.getName().equals("FieldInitialization") && !fieldInfo.getString(j).equals("private")) {
                     hcp.addToDL(fieldInfo.getString(j));
                 }
-                if (fieldInfo.getName().equals("FieldInitialization") && !fieldInfo.getString(j).equals("")) {
+                if (fieldInfo.getName().equals("FieldInitialization") && fieldInfo.get(0) != null) {
                     hcp.addToDL("= " + fieldInfo.getString(j));
                 }
             }
@@ -106,13 +106,17 @@ public class HeaderFileMaker extends Visitor {
     }
 
     // This method visits and saves the constructor of a given class to that class' HeaderClassPrinter.
+    public void visitConstructorDeclarations(GNode n) {
+        visit(n);
+    }
+
     public void visitConstructorDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
         hcp.addToDL(n.getNode(0).getString(0)+"("); // prints name
         Node constParams = n.getNode(1); // get constructorParameters node
         for (int i = 0; i < constParams.size(); i++) {
             Node constP = constParams.getNode(i);
-            hcp.addToDL(constP.getString(0) + " " + constP.getString(1));
+            hcp.addToDL(constP.getNode(0).getString(0) + " " + constP.getNode(1).getString(0));
         }
         hcp.addToDL(");\n\n");
         visit(n);
@@ -216,5 +220,4 @@ public class HeaderFileMaker extends Visitor {
         }
         return s;
     }
-
 }

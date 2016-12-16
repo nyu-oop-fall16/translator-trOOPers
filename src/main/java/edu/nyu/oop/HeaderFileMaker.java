@@ -85,7 +85,7 @@ public class HeaderFileMaker extends Visitor {
     // This method visits and saves all of the fields in a given class to that class' HeaderClassPrinter.
     public void visitFieldDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
-        for (int i = 0; i < n.size(); i++) {
+        for (int i = 1; i < n.size(); i++) {
             Node fieldInfo = n.getNode(i);
             for (int j = 0; j < fieldInfo.size(); j++) {
                 if (!fieldInfo.isEmpty() && !fieldInfo.getName().equals("FieldInitialization") && !fieldInfo.getString(j).equals("private")) {

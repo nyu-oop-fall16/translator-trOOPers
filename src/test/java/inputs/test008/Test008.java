@@ -48,7 +48,7 @@ public class Test008 {
 //#include "output.h"
 //        namespace inputs{
 //        namespace test007{
-//        __A::__A():__vptr(&_vtable),a(new __String("A")
+//        __A::__A():__vptr(&__vtable),a(new __String("A")
 //        {
 //        std::cout << a <<std::endl;
 //        }

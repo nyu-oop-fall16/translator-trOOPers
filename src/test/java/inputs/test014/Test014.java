@@ -44,7 +44,7 @@ namespace inputs{
         __A::__A() : __vptr(&__vtable){}
 
         __A::printOther(A __this, A other){
-            cout << __this->__vptr->toString(other) << endl;
+            cout << __this->__vptr->toString(other)->data << endl;
         }
 
         Class __A::__class(){

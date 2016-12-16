@@ -33,12 +33,12 @@ public class Test009 {
 //output.cpp
 //namespace inputs{
 //        namespace test007{
-//        __A::__A():__vptr(&_vtable),self(this)
+//        __A::__A():__vptr(&__vtable),self(this)
 //        {
 //        }
 //
 //        Class __A::__class(){
-//static Class k=new __Class(__rt::literal("inputs.test07.A"),(Class)__Object::__class());
+//static Class k=new __Class(__rt::literal("java.lang.A"),(Class)__Object::__class());
 //        return k;
 //        }
 //

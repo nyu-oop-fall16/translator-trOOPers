@@ -3,7 +3,7 @@ CompilationUnit(
 		null,
 		QualifiedIdentifier(
 			"inputs",
-			"test005"
+			"test016"
 		)
 	),
 	ClassDeclaration(
@@ -40,14 +40,11 @@ CompilationUnit(
 					
 				),
 				null,
-				Type(
-					QualifiedIdentifier(
-						"String"
-					),
-					null
+				VoidType(
+					
 				),
 				MethodName(
-					"__A::toString"
+					"__A::printOther"
 				),
 				FormalParameters(
 					FormalParameter(
@@ -63,16 +60,53 @@ CompilationUnit(
 						null,
 						"__this",
 						null
+					),
+					FormalParameter(
+						Modifiers(
+							
+						),
+						Type(
+							QualifiedIdentifier(
+								"A"
+							),
+							null
+						),
+						null,
+						"other",
+						null
 					)
 				),
 				null,
 				null,
 				Block(
-					ReturnStatement(
-						StringLiteral(
-							"new __String(
-								\"A\"
-							)"
+					ExpressionStatement(
+						CallExpression(
+							SelectionExpression(
+								PrimaryIdentifier(
+									"std"
+								),
+								"cout"
+							),
+							null,
+							null,
+							CallArguments(
+								CallExpression(
+									PrimaryIdentifier(
+										"other"
+									),
+									null,
+									"toString",
+									Arguments(
+										"other"
+									)
+								)
+							),
+							SelectionExpression(
+								PrimaryIdentifier(
+									"std"
+								),
+								"endl"
+							)
 						)
 					)
 				)
@@ -137,6 +171,26 @@ CompilationUnit(
 		),
 		null,
 		ClassBody(
+			FieldDeclaration(
+				Modifiers(
+					Modifier(
+						"public"
+					)
+				),
+				Type(
+					QualifiedIdentifier(
+						"B"
+					),
+					null
+				),
+				Declarators(
+					Declarator(
+						"some",
+						null,
+						null
+					)
+				)
+			),
 			ConstructorDeclaration(
 				Modifiers(
 					
@@ -155,6 +209,82 @@ CompilationUnit(
 				),
 				Block(
 					
+				)
+			),
+			MethodDeclaration(
+				Modifiers(
+					
+				),
+				null,
+				VoidType(
+					
+				),
+				MethodName(
+					"__B::printOther"
+				),
+				FormalParameters(
+					FormalParameter(
+						Modifiers(
+							
+						),
+						Type(
+							QualifiedIdentifier(
+								"B"
+							),
+							null
+						),
+						null,
+						"__this",
+						null
+					),
+					FormalParameter(
+						Modifiers(
+							
+						),
+						Type(
+							QualifiedIdentifier(
+								"A"
+							),
+							null
+						),
+						null,
+						"other",
+						null
+					)
+				),
+				null,
+				null,
+				Block(
+					ExpressionStatement(
+						CallExpression(
+							SelectionExpression(
+								PrimaryIdentifier(
+									"std"
+								),
+								"cout"
+							),
+							null,
+							null,
+							CallArguments(
+								CallExpression(
+									PrimaryIdentifier(
+										"other"
+									),
+									null,
+									"toString",
+									Arguments(
+										"other"
+									)
+								)
+							),
+							SelectionExpression(
+								PrimaryIdentifier(
+									"std"
+								),
+								"endl"
+							)
+						)
+					)
 				)
 			),
 			MethodDeclaration(
@@ -191,10 +321,15 @@ CompilationUnit(
 				null,
 				Block(
 					ReturnStatement(
-						StringLiteral(
-							"new __String(
-								\"B\"
-							)"
+						CallExpression(
+							PrimaryIdentifier(
+								"__this->some"
+							),
+							null,
+							"toString",
+							Arguments(
+								"some"
+							)
 						)
 					)
 				)
@@ -249,7 +384,7 @@ CompilationUnit(
 				"public"
 			)
 		),
-		"Test005",
+		"Test016",
 		null,
 		null,
 		null,
@@ -279,41 +414,13 @@ CompilationUnit(
 						),
 						Type(
 							QualifiedIdentifier(
-								"B"
-							),
-							null
-						),
-						Declarators(
-							Declarator(
-								"b",
-								null,
-								NewClassExpression(
-									null,
-									null,
-									QualifiedIdentifier(
-										"__B"
-									),
-									Arguments(
-										
-									),
-									null
-								)
-							)
-						)
-					),
-					FieldDeclaration(
-						Modifiers(
-							
-						),
-						Type(
-							QualifiedIdentifier(
 								"A"
 							),
 							null
 						),
 						Declarators(
 							Declarator(
-								"a1",
+								"a",
 								null,
 								NewClassExpression(
 									null,
@@ -335,77 +442,63 @@ CompilationUnit(
 						),
 						Type(
 							QualifiedIdentifier(
-								"A"
+								"B"
 							),
 							null
 						),
 						Declarators(
 							Declarator(
-								"a2",
+								"other",
 								null,
+								NewClassExpression(
+									null,
+									null,
+									QualifiedIdentifier(
+										"__B"
+									),
+									Arguments(
+										
+									),
+									null
+								)
+							)
+						)
+					),
+					ExpressionStatement(
+						Expression(
+							SelectionExpression(
 								PrimaryIdentifier(
-									"b"
+									"other->some"
+								),
+								"some"
+							),
+							PrimaryIdentifier(
+								"="
+							),
+							CastExpression(
+								Type(
+									QualifiedIdentifier(
+										"B"
+									),
+									null
+								),
+								PrimaryIdentifier(
+									"a"
 								)
 							)
 						)
 					),
 					ExpressionStatement(
 						CallExpression(
-							SelectionExpression(
-								PrimaryIdentifier(
-									"std"
-								),
-								"cout"
+							PrimaryIdentifier(
+								"a"
 							),
 							null,
-							null,
-							CallArguments(
-								CallExpression(
-									PrimaryIdentifier(
-										"a1"
-									),
-									null,
-									"toString",
-									Arguments(
-										"a1"
-									)
+							"printOther",
+							Arguments(
+								PrimaryIdentifier(
+									"other"
 								)
-							),
-							SelectionExpression(
-								PrimaryIdentifier(
-									"std"
-								),
-								"endl"
-							)
-						)
-					),
-					ExpressionStatement(
-						CallExpression(
-							SelectionExpression(
-								PrimaryIdentifier(
-									"std"
-								),
-								"cout"
-							),
-							null,
-							null,
-							CallArguments(
-								CallExpression(
-									PrimaryIdentifier(
-										"a2"
-									),
-									null,
-									"toString",
-									Arguments(
-										"a2"
-									)
-								)
-							),
-							SelectionExpression(
-								PrimaryIdentifier(
-									"std"
-								),
-								"endl"
 							)
 						)
 					)

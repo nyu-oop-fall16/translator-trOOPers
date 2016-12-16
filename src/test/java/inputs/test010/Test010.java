@@ -74,7 +74,7 @@ public class Test010 {
 // #include "output.h"
 //        namespace inputs{
 //        namespace test0010{
-//        __A::__A():__vptr(&_vtable)
+//        __A::__A():__vptr(&__vtable)
 //        {}
 
 //        void __A::setA(A __this, String x){

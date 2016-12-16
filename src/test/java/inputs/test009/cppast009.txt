@@ -51,7 +51,7 @@ CompilationUnit(
 						&__vtable
 					)",
 					"self(
-						null
+						this
 					)"
 				),
 				Block(

@@ -48,7 +48,7 @@ public class Boot extends Tool {
         bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
         bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
         bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
-        bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.").
+        bool("runt", "runt", false, "Translates a Java file into C++ files.").
         bool("allJavaAst", "allJavaAst", false, "Generates all Java Ast files and put them into test0xxAst.txt.");
     }
 
@@ -99,8 +99,6 @@ public class Boot extends Tool {
 //                System.out.println(filepath);
                 writejavaast(theNode);
             }
-
-
         }
 
         if (runtime.test("printJavaCode")) {
@@ -163,7 +161,7 @@ public class Boot extends Tool {
 
             // make a copy of the Java Ast of the test class and mutate it to C++ Ast
             GNode copy = NodeUtil.deepCopyNode(listGNodes.get(0));
-            MutateJavaAst ma=new MutateJavaAst();
+            MutateJavaAst ma=new MutateJavaAst(copy);
             mutatedAst = ma.mutate(copy);
 
             // check the Ast in console
@@ -183,7 +181,7 @@ public class Boot extends Tool {
             mainMaker.printToMainCpp(mainContent);
         }
 
-        if (runtime.test("runTranslator")) {
+        if (runtime.test("runt")) {
             // create the list
             List<GNode> gNodesList = new ArrayList<GNode>();
             // add the GNode of the java class passed in
@@ -214,10 +212,12 @@ public class Boot extends Tool {
 //            maker.runVisitor(rootNode);
 
             // make the mutated Java AST
-            MutateJavaAst ma=new MutateJavaAst();
+            MutateJavaAst ma=new MutateJavaAst(nodeCopy);
             GNode mutated = ma.mutate(nodeCopy);
 //            runtime.console().pln("Mutating finish!!!").flush();
 //            runtime.console().format(n).pln().flush();
+//            System.out.println("runt map");
+//            System.out.println(ma.returnMap().getMap());
             //print formatted mutated node tocppast0xx.txt
             writejavaast(n);
             writecppast(mutated);
@@ -293,9 +293,6 @@ public class Boot extends Tool {
         cppWriter.close();
     }
 
-
-
-
     public void writecppast(Node mutated) {
         //filenumber=test00x or 0xx
         String filenumber=mutated.getNode(0).getNode(1).getString(1).substring(4,7);
@@ -310,7 +307,6 @@ public class Boot extends Tool {
         } catch (FileNotFoundException e) {
             logger.warn("Invalid path for file " + cpp);
         }
-
 
         int counter=0;
         int start=0;
@@ -354,12 +350,6 @@ public class Boot extends Tool {
         cppWriter.close();
     }
 
-
-    /**
-     * Run Boot with the specified command line arguments.
-     *
-     * @param args The command line arguments.
-     */
     public static void main(String[] args) {
         new Boot().run(args);
     }

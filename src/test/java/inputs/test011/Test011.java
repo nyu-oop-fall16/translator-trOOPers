@@ -54,14 +54,14 @@ using namespace java::lang;
 
 namespace inputs{
     namespace test011{
-        __A::A() : __vptr(&__vtable),fld(new __String(), a){}
+        __A::A() : __vptr(&__vtable){}
 
         void __A::setA(String x, A __this){
             __this->a = x;
         }
 
         void __A::printOther(A other, A __this){
-            std::cout << other->__vptr->a,other) << std::endl;
+            std::cout << other->a << std::endl;
         }
 
         String __A::toString(A __this){

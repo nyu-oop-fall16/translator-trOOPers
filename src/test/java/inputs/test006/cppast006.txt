@@ -15,30 +15,6 @@ CompilationUnit(
 		null,
 		null,
 		ClassBody(
-			FieldDeclaration(
-				Modifiers(
-					Modifier(
-						"private"
-					)
-				),
-				Type(
-					QualifiedIdentifier(
-						"String"
-					),
-					null
-				),
-				Declarators(
-					Declarator(
-						"fld",
-						null,
-						StringLiteral(
-							"new __String(
-								\"A\"
-							)"
-						)
-					)
-				)
-			),
 			ConstructorDeclaration(
 				Modifiers(
 					
@@ -357,13 +333,13 @@ CompilationUnit(
 						CallExpression(
 							SelectionExpression(
 								PrimaryIdentifier(
-									"System"
+									"std"
 								),
-								"out"
+								"cout"
 							),
 							null,
-							"println",
-							Arguments(
+							null,
+							CallArguments(
 								CallExpression(
 									PrimaryIdentifier(
 										"a"
@@ -374,6 +350,12 @@ CompilationUnit(
 										"a"
 									)
 								)
+							),
+							SelectionExpression(
+								PrimaryIdentifier(
+									"std"
+								),
+								"endl"
 							)
 						)
 					),
@@ -397,13 +379,13 @@ CompilationUnit(
 						CallExpression(
 							SelectionExpression(
 								PrimaryIdentifier(
-									"System"
+									"std"
 								),
-								"out"
+								"cout"
 							),
 							null,
-							"println",
-							Arguments(
+							null,
+							CallArguments(
 								CallExpression(
 									PrimaryIdentifier(
 										"a"
@@ -414,6 +396,12 @@ CompilationUnit(
 										"a"
 									)
 								)
+							),
+							SelectionExpression(
+								PrimaryIdentifier(
+									"std"
+								),
+								"endl"
 							)
 						)
 					)

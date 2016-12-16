@@ -9,6 +9,7 @@ import xtc.tree.Visitor;
 
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.List;
 
 public class JavaAstVisitor extends Visitor {
     private Logger logger = org.slf4j.LoggerFactory.getLogger(this.getClass());
@@ -25,15 +26,16 @@ public class JavaAstVisitor extends Visitor {
     //placeholder and will change when we incorporate dependencies
     public void visitPackageDeclaration(GNode n) {
         information.addPackage(n);
-        information.fileName = n.getNode(1).getString(1);
+        information.setFileName(n.getNode(1).getString(1));
     }
 
     public void visitClassDeclaration(GNode n) {
         currentClass = n.getString(1);
-        if (!currentClass.equals("T" + information.fileName.substring(1))) {
+        if (!currentClass.equals("T" + information.getFileName().substring(1))) {
 
             ClassInfo thisClass = new ClassInfo();
             thisClass.setName(currentClass);
+            thisClass.initialize();
 
             //Accessing the classBody node, iterating through it children, and processing the FieldDeclaration Nodes.
             Node classBody = NodeUtil.dfs(n, "ClassBody");
@@ -47,7 +49,7 @@ public class JavaAstVisitor extends Visitor {
                             GNode modifiers = GNode.create("Modifiers");
                             String type;
                             String name;
-                            String initialization = "";
+                            String initialization = null;
 
                             Node mods = NodeUtil.dfs(nodeChild, "Modifiers");
                             for(Node modifier: NodeUtil.dfsAll(mods, "Modifier")) {
@@ -73,13 +75,30 @@ public class JavaAstVisitor extends Visitor {
             }
 
             //Accessing the constructor node of the class and extracting the parameters.
-            Node constructorDec = NodeUtil.dfs(n, "ConstructorDeclaration");
-            if (constructorDec != null) {
-                Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
-                    for(Node formalParam: NodeUtil.dfsAll(formalParams, "FormalParameter")) {
-                    String rtype = NodeUtil.dfs(formalParam, "Type").getNode(0).getString(0);
-                    String name = formalParam.getString(3);
-                    thisClass.addConstructorParams(rtype,name);
+            List<Node> constructors = NodeUtil.dfsAll(n, "ConstructorDeclaration");
+            if (constructors.isEmpty()) {
+                thisClass.addConstructor(GNode.create("Parameters"));
+            }
+
+            else {
+                for (Object constructor: constructors) {
+                    Node constructorDec = (Node) constructor;
+                    Node oneConstructorParams = GNode.create("Parameters");
+                    if (constructorDec != null) {
+                        Node formalParams = NodeUtil.dfs(constructorDec, "FormalParameters");
+                        for (Node formalParam : NodeUtil.dfsAll(formalParams, "FormalParameter")) {
+                            Node param = GNode.create("Parameter");
+                            Node pType = (Node) NodeUtil.dfs(formalParam, "Type").get(0);
+                            Node type = GNode.create("Type");
+                            type.add(pType.getString(0));
+                            param.add(type);
+                            Node pName = GNode.create("Name");
+                            pName.add(formalParam.getString(3));
+                            param.add(pName);
+                            oneConstructorParams.add(param);
+                        }
+                    }
+                    thisClass.addConstructor(oneConstructorParams);
                 }
             }
 
@@ -88,12 +107,11 @@ public class JavaAstVisitor extends Visitor {
             if (extension != null) {
                 String parentClass = NodeUtil.dfs(extension, "Type").getNode(0).getString(0);
                 thisClass.setParent(parentClass);
-            }
-            else {
+            } else {
                 thisClass.setParent("Object");
             }
 
-            information.classes.put(currentClass, thisClass);
+            information.addClass(currentClass, thisClass);
             visit(n);
         }
     }
@@ -114,9 +132,11 @@ public class JavaAstVisitor extends Visitor {
         Node typeTest = (Node) n.get(2);
         if (typeTest.getName().equals("VoidType")) {
             thisMethod.setReturnType("void");
-        }
-        else {
+        } else {
             Node identifier = NodeUtil.dfs(typeTest, "QualifiedIdentifier");
+            if (identifier == null) {
+                identifier = NodeUtil.dfs(typeTest, "PrimitiveType");
+            }
             thisMethod.setReturnType(identifier.getString(0));
         }
 
@@ -127,12 +147,12 @@ public class JavaAstVisitor extends Visitor {
             if (type == null) {
                 thisMethod.addParameter("void");
             } else {
-                Node identifier = NodeUtil.dfs(type, "QualifiedIdentifier");
+                Node identifier = (Node) type.get(0);
                 thisMethod.addParameter(identifier.getString(0));
             }
         }
 
-        information.classes.get(currentClass).addMethod(thisMethod);
+        information.addMethodToClass(currentClass, thisMethod);
     }
 
     public void visit(Node n) {

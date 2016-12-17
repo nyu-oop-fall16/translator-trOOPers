@@ -80,13 +80,10 @@ public class Boot extends Tool {
         return NodeUtil.parseJavaFile(file);
     }
 
-    // list of gnodes and imports
-    private List<GNode> listGNodes = new ArrayList<GNode>();
-    // holds the mutatedAst
-    private GNode mutatedAst;
-
     @Override
     public void process(Node n) {
+        Translator translator = new Translator(n);
+
         if (runtime.test("printJavaAst")) {
             runtime.console().format(n).pln().flush();
         }
@@ -107,109 +104,34 @@ public class Boot extends Tool {
 
         // Generates list of GNodes with its dependencies
         if (runtime.test("generateListGNodes")) {
-            // add the GNode of the java class passed in
-            listGNodes.add((GNode) n);
-
-            // should be a list of all dependencies and their dependencies recursively gotten
-            List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
-
-            // add the dependencies to the list
-            for(int i = 0; i < nodes.size(); i++) {
-                // makes sure that a GNode isn't added to list multiple times during cyclic imports
-                if(!listGNodes.contains(nodes.get(i))) {
-                    listGNodes.add(nodes.get(i));
-                }
-            }
+            translator.generateGNodes();
         }
 
         if (runtime.test("printHeaderAst")) {
-            JavaAstVisitor v = new JavaAstVisitor();
-            HeaderASTMaker build;
-            build = v.getBuildInfo(n);
-
-            //Create GNode that will be the root node of the AST.
-            GNode rootNode;
-            rootNode = build.makeAST();
+            GNode rootNode = translator.makeHeaderAst();
             runtime.console().format(rootNode).pln().flush();
 
         }
 
         if (runtime.test("printHeaderFile")) {
-            JavaAstVisitor v = new JavaAstVisitor();
-            HeaderASTMaker build = v.getBuildInfo(n);
-
-            //Create GNode that will be the root node of the AST.
-            GNode rootNode = build.makeAST();
-
-            // make the header file
-            HeaderFileMaker maker = new HeaderFileMaker();
-            maker.runVisitor(rootNode);
+            translator.makeHeaderFile();
         }
 
 
         if (runtime.test("printMutatedAst")) {
-
-            // make a copy of the Java Ast of the test class and mutate it to C++ Ast
-            GNode copy = NodeUtil.deepCopyNode(listGNodes.get(0));
-            mutatedAst = MutateJavaAst.mutate(copy);
-
+            GNode rootNode = translator.getMutatedAst();
             // check the Ast in console
-            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
+            runtime.console().pln("Mutate: ").format(rootNode).pln().flush();
         }
 
 
         // passes the mutated Ast to be used to create the implementation files
         if (runtime.test("printImplementationFiles")) {
-            OutputCppMaker outputMaker = new OutputCppMaker();
-            // get the list of strings to be printed after traversing ast
-            String outputContent=outputMaker.getOutputToBePrinted(mutatedAst);
-            outputMaker.printToOutputCpp(outputContent);
-
-            MainCppMaker mainMaker = new MainCppMaker();
-            String mainContent=mainMaker.getMainToBePrinted(mutatedAst);
-            mainMaker.printToMainCpp(mainContent);
+           translator.makeImplementationFiles();
         }
 
         if (runtime.test("runTranslator")) {
-            // create the list
-            List<GNode> gNodesList = new ArrayList<GNode>();
-            // add the GNode of the java class passed in
-            gNodesList.add((GNode) n);
-
-            // should be a list of all dependencies and their dependencies recursively gotten
-            List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
-
-            // add the dependencies to the list
-            for(int i = 0; i < nodes.size(); i++) {
-                // makes sure that a GNode isn't added to list multiple times during cyclic imports
-                if(!gNodesList.contains(nodes.get(i))) {
-                    gNodesList.add(nodes.get(i));
-                }
-            }
-
-            JavaAstVisitor v = new JavaAstVisitor();
-            GNode nodeCopy = NodeUtil.deepCopyNode(gNodesList.get(0));
-            HeaderASTMaker build = v.getBuildInfo(nodeCopy);
-
-            // Create GNode that will be the root node of the AST.
-            GNode rootNode = build.makeAST();
-
-            // make the header file
-            HeaderFileMaker maker = new HeaderFileMaker();
-            maker.runVisitor(rootNode);
-
-            // make the mutated Java AST
-            GNode mutated = MutateJavaAst.mutate(nodeCopy);
-
-            // make the implementation files
-            OutputCppMaker outputMaker = new OutputCppMaker();
-            // get the list of strings to be printed after traversing ast
-            String outputContent=outputMaker.getOutputToBePrinted(mutated);
-            outputMaker.printToOutputCpp(outputContent);
-
-            MainCppMaker mainMaker = new MainCppMaker();
-            String mainContent=mainMaker.getMainToBePrinted(mutated);
-            mainMaker.printToMainCpp(mainContent);
+            translator.run();
         }
     }
 

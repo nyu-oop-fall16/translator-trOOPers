@@ -127,7 +127,7 @@ public class HeaderFileMaker extends Visitor {
     // data layout.
     public void visitDLMethodDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
-        hcp.addToDL(n.getNode(0).getString(0) + " " + n.getNode(2).getString(0) + " " + n.getNode(1).getString(0) + "("); // print modifier "static", return type, and method name
+        hcp.addToDL(/*n.getNode(0).getString(0) +*/ "static " + n.getNode(2).getString(0) + " " + n.getNode(1).getString(0) + "("); // print modifier "static", return type, and method name
         Node methodParameters = n.getNode(3);
         StringBuffer s = addParamsToBuffer(methodParameters);
         hcp.addToDL(s + ";\n");

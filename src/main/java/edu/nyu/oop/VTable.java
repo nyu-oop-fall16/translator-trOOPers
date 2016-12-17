@@ -49,27 +49,29 @@ public class VTable {
             makeVTMethod(classes.get(c.getParent()), className);
         }
         for(MethodInfo m: c.getMethods()) {
-            GNode newMethod = GNode.create("VTMethod");
+            if (!m.getModifiers().contains("static")) {
+                GNode newMethod = GNode.create("VTMethod");
 
-            GNode methodName = GNode.create("MethodName");
-            GNode rType = GNode.create("ReturnType");
-            GNode implementedClass = GNode.create("ImplementedClass");
-            GNode params = GNode.create("MethodParameters");
+                GNode methodName = GNode.create("MethodName");
+                GNode rType = GNode.create("ReturnType");
+                GNode implementedClass = GNode.create("ImplementedClass");
+                GNode params = GNode.create("MethodParameters");
 
-            methodName.add(m.getName());
-            rType.add(m.getReturnType().getString(0));
-            implementedClass.add(c.getName());
-            params.add(className);
-            for (String parameter : m.getParameters()) {
-                params.add(parameter);
+                methodName.add(m.getName());
+                rType.add(m.getReturnType().getString(0));
+                implementedClass.add(c.getName());
+                params.add(className);
+                for (String parameter : m.getParameters()) {
+                    params.add(parameter);
+                }
+
+                newMethod.add(methodName);
+                newMethod.add(rType);
+                newMethod.add(implementedClass);
+                newMethod.add(params);
+
+                methodMap.put(m.getName(), newMethod);
             }
-
-            newMethod.add(methodName);
-            newMethod.add(rType);
-            newMethod.add(implementedClass);
-            newMethod.add(params);
-
-            methodMap.put(m.getName(), newMethod);
         }
 
 //            System.out.println("The method " + m.getName() + " has been added to " + className + " by " + c.getName());

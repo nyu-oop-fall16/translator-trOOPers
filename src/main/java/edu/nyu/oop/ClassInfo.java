@@ -23,8 +23,13 @@ public class ClassInfo {
     private ArrayList<MethodInfo> methods = new ArrayList<MethodInfo>();
 
     public void initialize() {
-        fields.add(makeFieldVPtr());
-        fields.add(makeFieldVTable());
+        String vTname = "__" + name + "_VT";
+
+        addField(GNode.create("Modifiers"), (vTname + "*"), "__vptr");
+
+        GNode vTmod = GNode.create("Modifiers");
+        vTmod.add("static");
+        addField(vTmod, vTname, "__vtable");
     }
 
     //Set and get methods for the information held within an headerClass object.
@@ -43,7 +48,7 @@ public class ClassInfo {
         return parent;
     }
 
-    public void addField(GNode modifiers, String type, String name, String initialization) {
+    public void addField(GNode modifiers, String type, String name) {
         GNode field = GNode.create("FieldDeclaration");
 
         field.add(modifiers);
@@ -56,9 +61,9 @@ public class ClassInfo {
         fieldName.add(name);
         field.add(fieldName);
 
-        GNode fieldInitialization = GNode.create("FieldInitialization");
-        fieldInitialization.add(initialization);
-        field.add(fieldInitialization);
+//        GNode fieldInitialization = GNode.create("FieldInitialization");
+//        fieldInitialization.add(initialization);
+//        field.add(fieldInitialization);
 
         fields.add(field);
 
@@ -100,39 +105,6 @@ public class ClassInfo {
 
     public ArrayList<GNode> getConstructors() {
         return this.constructors;
-    }
-
-    private GNode makeFieldVPtr() {
-        GNode fieldVPTR = GNode.create("FieldDeclaration");
-        GNode vptrMod = GNode.create("Modifiers");
-        GNode vptrType = GNode.create("FieldType");
-        vptrType.add("__" + name + "_VT*");
-        GNode vptrName = GNode.create("FieldName");
-        vptrName.add("__vptr");
-        GNode vptrInit = GNode.create("FieldInitialization");
-        vptrInit.add(null);
-        fieldVPTR.add(vptrMod);
-        fieldVPTR.add(vptrType);
-        fieldVPTR.add(vptrName);
-        fieldVPTR.add(vptrInit);
-        return fieldVPTR;
-    }
-
-    private GNode makeFieldVTable() {
-        GNode fieldVTable = GNode.create("FieldDeclaration");
-        GNode vtFieldMod = GNode.create("Modifiers");
-        vtFieldMod.add("static");
-        GNode vtFieldType = GNode.create("FieldType");
-        vtFieldType.add("__" + name + "_VT");
-        GNode vtFieldName = GNode.create("FieldName");
-        vtFieldName.add("__vtable");
-        GNode vtFieldInit = GNode.create("FieldInitialization");
-        vtFieldInit.add(null);
-        fieldVTable.add(vtFieldMod);
-        fieldVTable.add(vtFieldType);
-        fieldVTable.add(vtFieldName);
-        fieldVTable.add(vtFieldInit);
-        return fieldVTable;
     }
 
     public static ClassInfo buildObject() {

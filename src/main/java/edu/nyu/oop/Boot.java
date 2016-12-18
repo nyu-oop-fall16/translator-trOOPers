@@ -49,7 +49,8 @@ public class Boot extends Tool {
         bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
         bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
         bool("runt", "runt", false, "Translates a Java file into C++ files.").
-        bool("allJavaAst", "allJavaAst", false, "Generates all Java Ast files and put them into test0xxAst.txt.");
+        bool("allJavaAst", "allJavaAst", false, "Generates all Java Ast files and put them into test0xxAst.txt.").
+        bool("demo", "demo", false, "demo");
     }
 
     @Override
@@ -156,12 +157,39 @@ public class Boot extends Tool {
             maker.runVisitor(rootNode);
         }
 
+        if (runtime.test("demo")) {
+            List<GNode> gNodesList = new ArrayList<GNode>();
+            // add the GNode of the java class passed in
+            gNodesList.add((GNode) n);
+
+            // should be a list of all dependencies and their dependencies recursively gotten
+            List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
+
+
+            // add the dependencies to the list
+            for(int i = 0; i < nodes.size(); i++) {
+                // makes sure that a GNode isn't added to list multiple times during cyclic imports
+                if(!gNodesList.contains(nodes.get(i))) {
+                    gNodesList.add(nodes.get(i));
+                }
+            }
+
+
+
+
+
+            JavaAstVisitor v = new JavaAstVisitor();
+            GNode nodeCopy = NodeUtil.deepCopyNode(gNodesList.get(0));
+
+            RunMutator runMutator = new RunMutator(nodeCopy);
+        }
+
 
         if (runtime.test("printMutatedAst")) {
 
             // make a copy of the Java Ast of the test class and mutate it to C++ Ast
             GNode copy = NodeUtil.deepCopyNode(listGNodes.get(0));
-            MutateJavaAst ma=new MutateJavaAst(copy);
+            MutateJavaAst ma=new MutateJavaAst();
             mutatedAst = ma.mutate(copy);
 
             // check the Ast in console
@@ -212,7 +240,7 @@ public class Boot extends Tool {
 //            maker.runVisitor(rootNode);
 
             // make the mutated Java AST
-            MutateJavaAst ma=new MutateJavaAst(nodeCopy);
+            MutateJavaAst ma=new MutateJavaAst();
             GNode mutated = ma.mutate(nodeCopy);
 //            runtime.console().pln("Mutating finish!!!").flush();
 //            runtime.console().format(n).pln().flush();

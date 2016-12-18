@@ -1,16 +1,17 @@
 package edu.nyu.oop;
 
-import xtc.tree.Node;
+import javafx.util.Pair;
 import xtc.tree.GNode;
+import xtc.tree.Node;
 import xtc.tree.Visitor;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 
 public class ClassBodyMutator extends Visitor {
     String className;
     ArrayList<ConstructorDeclarationMutator> constructors;
     ArrayList<MethodDeclarationMutator> methods;
+    ArrayList<Pair<String,String>>fields;
 
     /**
      * Constructs an object of ClassBodyMutator which holds the class's name and its class body.
@@ -51,6 +52,14 @@ public class ClassBodyMutator extends Visitor {
                 }
             }
         }.dispatch(n);
+        for(int i=0;i<n.size();i++){
+            if(n.getNode(i).hasName("FieldDeclaration")){
+                Pair<String, String> a= new Pair<>(n.getNode(i).getNode(1).getString(0), n.getNode(i).getNode(2).getNode(0).getString(0));
+                fields.add(a);
+            }
+
+        }
+
     }
 
     public void handleConstructors(GNode n, final ArrayList<ConstructorDeclarationMutator> constructors){

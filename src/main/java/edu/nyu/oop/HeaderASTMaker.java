@@ -101,7 +101,8 @@ public class HeaderASTMaker {
         }
         return head;
     }
-
+    
+    // This method uses name mangling to resolve name issues for overloaded methods within a class.
     private void mangleMethodNames(ClassInfo c) {
         HashMap<String,Boolean> nameCheck = new HashMap<String,Boolean>();
         for(MethodInfo m: c.getMethods()) {

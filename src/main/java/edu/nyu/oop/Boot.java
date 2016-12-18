@@ -229,6 +229,7 @@ public class Boot extends Tool {
 
                 classes.get(i).printClassMethod();
                 classes.get(i).printVTable();
+                classes.get(i).printConstructor();
 
                 ArrayList<MethodDeclarationMutator> methodList = classes.get(i).classBody.methods;
                 for(int j = 0; j < methodList.size(); j++){
@@ -240,13 +241,16 @@ public class Boot extends Tool {
                 for(int j = 0; j < fieldsList.size(); j++){
                     System.out.println(fieldsList.get(j).fieldMember[0] + " " + fieldsList.get(j).fieldMember[1]);
                 }
+
+                ArrayList<ConstructorDeclarationMutator> constructorsList = classes.get(i).classBody.initConstructors;
+                for(int j = 0; j < constructorsList.size(); j++){
+                    System.out.println(constructorsList.get(j).initName);
+                    constructorsList.get(j).printInitMethod();
+                }
             }
 
 
-//            ArrayList<ConstructorDeclarationMutator> constructorsList = classes.get(0).classBody.constructors;
-//            for(int i = 0; i < constructorsList.size(); i++){
-//                System.out.println(constructorsList.get(i).constructorCall);
-//            }
+
 
 
         }

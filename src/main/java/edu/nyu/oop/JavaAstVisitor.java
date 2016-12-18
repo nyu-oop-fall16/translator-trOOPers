@@ -49,7 +49,6 @@ public class JavaAstVisitor extends Visitor {
                             GNode modifiers = GNode.create("Modifiers");
                             String type;
                             String name;
-                            String initialization = null;
 
                             Node mods = NodeUtil.dfs(nodeChild, "Modifiers");
                             for(Node modifier: NodeUtil.dfsAll(mods, "Modifier")) {
@@ -60,14 +59,8 @@ public class JavaAstVisitor extends Visitor {
                             type = typeNode.getNode(0).getString(0);
                             Node decs = NodeUtil.dfs(nodeChild, "Declarators");
                             name = decs.getNode(0).getString(0);
-                            if (decs != null) {
-                                Node init = decs.getNode(0).getNode(2);
-                                if (init != null) {
-                                    initialization = init.getString(0);
-                                }
-                            }
 
-                            thisClass.addField(modifiers, type, name, initialization);
+                            thisClass.addField(modifiers, type, name);
                         }
 
                     }
@@ -122,7 +115,7 @@ public class JavaAstVisitor extends Visitor {
         MethodInfo thisMethod = new MethodInfo();
         thisMethod.setName(currentMethod);
 
-        // Find modifiers and add them to the ClassInfo Object
+        // Find modifiers and add them to the MethodInfo Object
         Node modifiers = NodeUtil.dfs(n, "Modifiers");
         for (Node m : NodeUtil.dfsAll(modifiers, "Modifier")) {
             thisMethod.addModifier(m.getString(0));

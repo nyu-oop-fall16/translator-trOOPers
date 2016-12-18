@@ -12,31 +12,33 @@ public class MethodInfo {
     private ArrayList<String> mParameters = new ArrayList<String>();
     private ArrayList<String> modifiers = new ArrayList<String>();
 
-    //Set and get methods for the information held within a headerClassMethod object.
+    // Adds a modifier (such as "public," "private," or "static" to the MethodInfo object's list of modifiers.
     public void addModifier(String modifier) {
         modifiers.add(modifier);
     }
-    public List<String> getModifiers() {
-        return modifiers;
+
+    // Adds a parameter to the method's list of arguments
+    public void addParameter(String mParameter) {
+        this.mParameters.add(mParameter);
     }
 
+    //Set and get methods for the information held within a MethodInfo object.
     public void setReturnType(String rType) {
         returnType = GNode.create("ReturnType");
         returnType.add(rType);
     }
-    public GNode getReturnType() {
-        return returnType;
-    }
-
     public void setName(String n) {
         name = n;
     }
+
+    public List<String> getModifiers() {
+        return modifiers;
+    }
+    public GNode getReturnType() {
+        return returnType;
+    }
     public String getName() {
         return name;
-    }
-
-    public void addParameter(String mParameter) {
-        this.mParameters.add(mParameter);
     }
     public ArrayList<String> getParameters() {
         return mParameters;

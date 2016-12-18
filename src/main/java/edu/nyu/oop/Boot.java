@@ -1,18 +1,22 @@
 package edu.nyu.oop;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.List;
+
+import java.util.ArrayList;
+
 import edu.nyu.oop.util.JavaFiveImportParser;
 import edu.nyu.oop.util.NodeUtil;
 import edu.nyu.oop.util.XtcProps;
 import org.slf4j.Logger;
-import xtc.lang.JavaPrinter;
-import xtc.parser.ParseException;
+
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.util.Tool;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import xtc.lang.JavaPrinter;
+import xtc.parser.ParseException;
 
 
 /**
@@ -40,16 +44,15 @@ public class Boot extends Tool {
         super.init();
         // Declare command line arguments.
         runtime.
-                bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
-                bool("printJavaCode", "printJavaCode", false, "Print Java code.").
-                bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
-                bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
-                bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
-                bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
-                bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
-                bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
-                bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.").
-                bool("allJavaAst", "allJavaAst", false, "Generates all Java Ast files and put them into test0xxAst.txt.");
+        bool("printJavaAst", "printJavaAst", false, "Print Java Ast.").
+        bool("printJavaCode", "printJavaCode", false, "Print Java code.").
+        bool("printJavaImportCode", "printJavaImportCode", false, "Print Java code for imports and package source.").
+        bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
+        bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
+        bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
+        bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
+        bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
+        bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.");
     }
 
     @Override
@@ -77,30 +80,12 @@ public class Boot extends Tool {
         return NodeUtil.parseJavaFile(file);
     }
 
-    // list of gnodes and imports
-    private List<GNode> listGNodes = new ArrayList<GNode>();
-    // holds the mutatedAst
-    private GNode mutatedAst;
-
     @Override
     public void process(Node n) {
+        Translator translator = new Translator(n);
+
         if (runtime.test("printJavaAst")) {
             runtime.console().format(n).pln().flush();
-            writejavaast(n);
-        }
-
-        if (runtime.test("allJavaAst")) {
-            for(int i=0;!(i>50);i++){
-                String numbber="%03d";
-                String filenumber=String.format(numbber,i);
-                String filepath=XtcProps.getList("input.locations")[1]+"/inputs/test"+filenumber+"/Test"+filenumber+".java";
-                File file=new File(filepath);
-                Node theNode=NodeUtil.parseJavaFile(file);
-//                System.out.println(filepath);
-                writejavaast(theNode);
-            }
-
-
         }
 
         if (runtime.test("printJavaCode")) {
@@ -119,175 +104,35 @@ public class Boot extends Tool {
 
         // Generates list of GNodes with its dependencies
         if (runtime.test("generateListGNodes")) {
-            // add the GNode of the java class passed in
-            listGNodes.add((GNode) n);
-
-            // should be a list of all dependencies and their dependencies recursively gotten
-            List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
-
-            // add the dependencies to the list
-            for(int i = 0; i < nodes.size(); i++) {
-                // makes sure that a GNode isn't added to list multiple times during cyclic imports
-                if(!listGNodes.contains(nodes.get(i))) {
-                    listGNodes.add(nodes.get(i));
-                }
-            }
+            translator.generateGNodes();
         }
 
         if (runtime.test("printHeaderAst")) {
-            JavaAstVisitor v = new JavaAstVisitor();
-            HeaderASTMaker build;
-            build = v.getBuildInfo(n);
-
-            //Create GNode that will be the root node of the AST.
-            GNode rootNode;
-            rootNode = build.makeAST();
+            GNode rootNode = translator.makeHeaderAst();
             runtime.console().format(rootNode).pln().flush();
 
         }
 
         if (runtime.test("printHeaderFile")) {
-            JavaAstVisitor v = new JavaAstVisitor();
-            HeaderASTMaker build = v.getBuildInfo(n);
-
-            //Create GNode that will be the root node of the AST.
-            GNode rootNode = build.makeAST();
-
-            // make the header file
-            HeaderFileMaker maker = new HeaderFileMaker();
-            maker.runVisitor(rootNode);
+            translator.makeHeaderFile();
         }
 
 
         if (runtime.test("printMutatedAst")) {
-
-            // make a copy of the Java Ast of the test class and mutate it to C++ Ast
-            GNode copy = NodeUtil.deepCopyNode(listGNodes.get(0));
-            mutatedAst = MutateJavaAst.mutate(copy);
-
+            GNode rootNode = translator.getMutatedAst();
             // check the Ast in console
-            runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
+            runtime.console().pln("Mutate: ").format(rootNode).pln().flush();
         }
 
 
         // passes the mutated Ast to be used to create the implementation files
         if (runtime.test("printImplementationFiles")) {
-            OutputCppMaker outputMaker = new OutputCppMaker();
-            // get the list of strings to be printed after traversing ast
-            String outputContent=outputMaker.getOutputToBePrinted(mutatedAst);
-            outputMaker.printToOutputCpp(outputContent);
-
-            MainCppMaker mainMaker = new MainCppMaker();
-            String mainContent=mainMaker.getMainToBePrinted(mutatedAst);
-            mainMaker.printToMainCpp(mainContent);
+           translator.makeImplementationFiles();
         }
 
         if (runtime.test("runTranslator")) {
-            // create the list
-            List<GNode> gNodesList = new ArrayList<GNode>();
-            // add the GNode of the java class passed in
-            gNodesList.add((GNode) n);
-
-            // should be a list of all dependencies and their dependencies recursively gotten
-            List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
-
-            // add the dependencies to the list
-            for(int i = 0; i < nodes.size(); i++) {
-                // makes sure that a GNode isn't added to list multiple times during cyclic imports
-                if(!gNodesList.contains(nodes.get(i))) {
-                    gNodesList.add(nodes.get(i));
-                }
-            }
-
-            JavaAstVisitor v = new JavaAstVisitor();
-            GNode nodeCopy = NodeUtil.deepCopyNode(gNodesList.get(0));
-            HeaderASTMaker build = v.getBuildInfo(nodeCopy);
-
-            // Create GNode that will be the root node of the AST.
-            GNode rootNode = build.makeAST();
-
-            // make the header file
-            HeaderFileMaker maker = new HeaderFileMaker();
-            maker.runVisitor(rootNode);
-
-            // make the mutated Java AST
-            GNode mutated = MutateJavaAst.mutate(nodeCopy);
-            runtime.console().format(mutated).pln().flush();
-
-            //print formatted mutated node tocppast0xx.txt
-            writejavaast(n);
-
-            // make the implementation files
-            OutputCppMaker outputMaker = new OutputCppMaker();
-            // get the list of strings to be printed after traversing ast
-            String outputContent=outputMaker.getOutputToBePrinted(mutated);
-            outputMaker.printToOutputCpp(outputContent);
-
-            MainCppMaker mainMaker = new MainCppMaker();
-            String mainContent=mainMaker.getMainToBePrinted(mutated);
-            mainMaker.printToMainCpp(mainContent);
+            translator.run();
         }
-    }
-
-
-    public void writejavaast(Node mutated) {
-        //filenumber=test00x or 0xx
-//        String filenumber=mutated.getNode(0).getNode(1).getString(1).substring(4,7);
-        String filenumber=mutated.getNode(0).getNode(1).getString(1);
-        String outputs=XtcProps.get("output.location");
-//        String inputs=XtcProps.getList("input.locations")[1];
-//        File cpp=new File(inputs+"/inputs/test"+filenumber+"/cppast"+filenumber+".txt");
-        File cpp=new File(outputs+"/"+filenumber+"Ast.txt");
-        PrintWriter cppWriter = null;
-        try {
-            cppWriter = new PrintWriter(cpp);
-        } catch (FileNotFoundException e) {
-            logger.warn("Invalid path for file " + cpp);
-        }
-
-
-        int counter=0;
-        int start=0;
-        int end;
-        int flag=0;
-
-        StringBuilder content=new StringBuilder(mutated.toString());
-        for(int i=0;i<content.length();i++){
-            String add="\n";
-            String sub="";
-
-            if(content.charAt(i)=='('){
-                counter+=1;
-                end=i+1;
-                flag=1;
-                sub=content.substring(start, end);
-                start = i + 1;
-            }
-            else if(content.charAt(i)==','){
-                end=i+1;
-                flag=1;
-                sub=content.substring(start, end);
-                start = i + 2;//skip the space following comma
-            }
-            else if(content.charAt(i)==')'){
-                counter-=1;
-                end=i;
-                flag=1;
-                sub=content.substring(start, end);
-                start = i;
-            }
-
-            for(int j=0;j<counter;j++){
-                add+="\t";
-            }
-
-            if(flag==1) {
-                cppWriter.print(sub);
-                cppWriter.print(add);
-                flag=0;
-            }
-        }
-        cppWriter.close();
     }
 
     /**

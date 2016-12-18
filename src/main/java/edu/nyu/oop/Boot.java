@@ -1,18 +1,23 @@
 package edu.nyu.oop;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.lang.reflect.Constructor;
+import java.util.List;
+
+import java.util.ArrayList;
+
 import edu.nyu.oop.util.JavaFiveImportParser;
 import edu.nyu.oop.util.NodeUtil;
 import edu.nyu.oop.util.XtcProps;
 import org.slf4j.Logger;
-import xtc.lang.JavaPrinter;
-import xtc.parser.ParseException;
+
 import xtc.tree.GNode;
 import xtc.tree.Node;
 import xtc.util.Tool;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import xtc.lang.JavaPrinter;
+import xtc.parser.ParseException;
 
 
 /**
@@ -48,8 +53,8 @@ public class Boot extends Tool {
         bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
         bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
         bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
-        bool("runt", "runt", false, "Translates a Java file into C++ files.").
-        bool("allJavaAst", "allJavaAst", false, "Generates all Java Ast files and put them into test0xxAst.txt.");
+        bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.").
+        bool("runMutators", "runMutators", false, "Runs the mutator classes.");
     }
 
     @Override
@@ -86,19 +91,6 @@ public class Boot extends Tool {
     public void process(Node n) {
         if (runtime.test("printJavaAst")) {
             runtime.console().format(n).pln().flush();
-            writejavaast(n);
-        }
-
-        if (runtime.test("allJavaAst")) {
-            for(int i=0; !(i>50); i++) {
-                String numbber="%03d";
-                String filenumber=String.format(numbber,i);
-                String filepath=XtcProps.getList("input.locations")[1]+"/inputs/test"+filenumber+"/Test"+filenumber+".java";
-                File file=new File(filepath);
-                Node theNode=NodeUtil.parseJavaFile(file);
-//                System.out.println(filepath);
-                writejavaast(theNode);
-            }
         }
 
         if (runtime.test("printJavaCode")) {
@@ -130,6 +122,10 @@ public class Boot extends Tool {
                     listGNodes.add(nodes.get(i));
                 }
             }
+
+            // check the Ast in console
+            runtime.console().pln("Original Java Ast: ").format(listGNodes.get(0)).pln().flush();
+
         }
 
         if (runtime.test("printHeaderAst")) {
@@ -161,8 +157,7 @@ public class Boot extends Tool {
 
             // make a copy of the Java Ast of the test class and mutate it to C++ Ast
             GNode copy = NodeUtil.deepCopyNode(listGNodes.get(0));
-            MutateJavaAst ma=new MutateJavaAst(copy);
-            mutatedAst = ma.mutate(copy);
+            mutatedAst = MutateJavaAst.mutate(copy);
 
             // check the Ast in console
             runtime.console().pln("Mutate: ").format(mutatedAst).pln().flush();
@@ -181,7 +176,7 @@ public class Boot extends Tool {
             mainMaker.printToMainCpp(mainContent);
         }
 
-        if (runtime.test("runt")) {
+        if (runtime.test("runTranslator")) {
             // create the list
             List<GNode> gNodesList = new ArrayList<GNode>();
             // add the GNode of the java class passed in
@@ -189,7 +184,6 @@ public class Boot extends Tool {
 
             // should be a list of all dependencies and their dependencies recursively gotten
             List<GNode> nodes = JavaFiveImportParser.parse((GNode) n);
-
 
             // add the dependencies to the list
             for(int i = 0; i < nodes.size(); i++) {
@@ -199,28 +193,19 @@ public class Boot extends Tool {
                 }
             }
 
-
             JavaAstVisitor v = new JavaAstVisitor();
             GNode nodeCopy = NodeUtil.deepCopyNode(gNodesList.get(0));
-//            HeaderASTMaker build = v.getBuildInfo(nodeCopy);
+            HeaderASTMaker build = v.getBuildInfo(nodeCopy);
 
             // Create GNode that will be the root node of the AST.
-//            GNode rootNode = build.makeAST();
+            GNode rootNode = build.makeAST();
 
             // make the header file
-//            HeaderFileMaker maker = new HeaderFileMaker();
-//            maker.runVisitor(rootNode);
+            HeaderFileMaker maker = new HeaderFileMaker();
+            maker.runVisitor(rootNode);
 
             // make the mutated Java AST
-            MutateJavaAst ma=new MutateJavaAst(nodeCopy);
-            GNode mutated = ma.mutate(nodeCopy);
-//            runtime.console().pln("Mutating finish!!!").flush();
-//            runtime.console().format(n).pln().flush();
-//            System.out.println("runt map");
-//            System.out.println(ma.returnMap().getMap());
-            //print formatted mutated node tocppast0xx.txt
-            writejavaast(n);
-            writecppast(mutated);
+            GNode mutated = MutateJavaAst.mutate(nodeCopy);
 
             // make the implementation files
             OutputCppMaker outputMaker = new OutputCppMaker();
@@ -232,124 +217,46 @@ public class Boot extends Tool {
             String mainContent=mainMaker.getMainToBePrinted(mutated);
             mainMaker.printToMainCpp(mainContent);
         }
+
+        if(runtime.test("runMutators")){
+            RunMutator run = new RunMutator();
+            ArrayList<ClassDeclarationMutator> classes = run.getClasses(listGNodes.get(0));
+            for(int i = 0; i < classes.size(); i++){
+                String className = classes.get(i).className;
+                System.out.println(className);
+                String classExtension = classes.get(i).classExtension;
+                System.out.println(classExtension);
+
+                classes.get(i).printClassMethod();
+                classes.get(i).printVTable();
+
+                ArrayList<MethodDeclarationMutator> methodList = classes.get(i).classBody.methods;
+                for(int j = 0; j < methodList.size(); j++){
+                    System.out.println(methodList.get(j).returnType + " " + methodList.get(j).methodName);
+                    methodList.get(j).printMethodImplementation();
+                }
+
+                ArrayList<FieldDeclarationMutator> fieldsList = classes.get(i).classBody.fields;
+                for(int j = 0; j < fieldsList.size(); j++){
+                    System.out.println(fieldsList.get(j).fieldMember[0] + " " + fieldsList.get(j).fieldMember[1]);
+                }
+            }
+
+
+//            ArrayList<ConstructorDeclarationMutator> constructorsList = classes.get(0).classBody.constructors;
+//            for(int i = 0; i < constructorsList.size(); i++){
+//                System.out.println(constructorsList.get(i).constructorCall);
+//            }
+
+
+        }
     }
 
-
-    public void writejavaast(Node mutated) {
-        //filenumber=test00x or 0xx
-//        String filenumber=mutated.getNode(0).getNode(1).getString(1).substring(4,7);
-        String filenumber=mutated.getNode(0).getNode(1).getString(1);
-        String outputs=XtcProps.get("output.location");
-//        String inputs=XtcProps.getList("input.locations")[1];
-//        File cpp=new File(inputs+"/inputs/test"+filenumber+"/cppast"+filenumber+".txt");
-        File cpp=new File(outputs+"/"+filenumber+"Ast.txt");
-        PrintWriter cppWriter = null;
-        try {
-            cppWriter = new PrintWriter(cpp);
-        } catch (FileNotFoundException e) {
-            logger.warn("Invalid path for file " + cpp);
-        }
-
-
-        int counter=0;
-        int start=0;
-        int end;
-        int flag=0;
-
-        StringBuilder content=new StringBuilder(mutated.toString());
-        for(int i=0; i<content.length(); i++) {
-            String add="\n";
-            String sub="";
-
-            if(content.charAt(i)=='(') {
-                counter+=1;
-                end=i+1;
-                flag=1;
-                sub=content.substring(start, end);
-                start = i + 1;
-            } else if(content.charAt(i)==',') {
-                end=i+1;
-                flag=1;
-                sub=content.substring(start, end);
-                start = i + 2;//skip the space following comma
-            } else if(content.charAt(i)==')') {
-                counter-=1;
-                end=i;
-                flag=1;
-                sub=content.substring(start, end);
-                start = i;
-            }
-
-            for(int j=0; j<counter; j++) {
-                add+="\t";
-            }
-
-            if(flag==1) {
-                cppWriter.print(sub);
-                cppWriter.print(add);
-                flag=0;
-            }
-        }
-        cppWriter.close();
-    }
-
-    public void writecppast(Node mutated) {
-        //filenumber=test00x or 0xx
-        String filenumber=mutated.getNode(0).getNode(1).getString(1).substring(4,7);
-//        String filenumber=mutated.getNode(0).getNode(1).getString(1);
-//        String outputs=XtcProps.get("output.location");
-        String inputs=XtcProps.getList("input.locations")[1];
-        File cpp=new File(inputs+"/inputs/test"+filenumber+"/cppast"+filenumber+".txt");
-//        File cpp=new File(outputs+"/"+filenumber+"Ast.txt");
-        PrintWriter cppWriter = null;
-        try {
-            cppWriter = new PrintWriter(cpp);
-        } catch (FileNotFoundException e) {
-            logger.warn("Invalid path for file " + cpp);
-        }
-
-        int counter=0;
-        int start=0;
-        int end;
-        int flag=0;
-
-        StringBuilder content=new StringBuilder(mutated.toString());
-        for(int i=0; i<content.length(); i++) {
-            String add="\n";
-            String sub="";
-
-            if(content.charAt(i)=='(') {
-                counter+=1;
-                end=i+1;
-                flag=1;
-                sub=content.substring(start, end);
-                start = i + 1;
-            } else if(content.charAt(i)==',') {
-                end=i+1;
-                flag=1;
-                sub=content.substring(start, end);
-                start = i + 2;//skip the space following comma
-            } else if(content.charAt(i)==')') {
-                counter-=1;
-                end=i;
-                flag=1;
-                sub=content.substring(start, end);
-                start = i;
-            }
-
-            for(int j=0; j<counter; j++) {
-                add+="\t";
-            }
-
-            if(flag==1) {
-                cppWriter.print(sub);
-                cppWriter.print(add);
-                flag=0;
-            }
-        }
-        cppWriter.close();
-    }
-
+    /**
+     * Run Boot with the specified command line arguments.
+     *
+     * @param args The command line arguments.
+     */
     public static void main(String[] args) {
         new Boot().run(args);
     }

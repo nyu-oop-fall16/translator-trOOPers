@@ -24,6 +24,7 @@ public class Translator {
         rootNode = n;
     }
 
+    // translates a java file into an AST
     public void generateGNodes() {
         listGNodes.add((GNode) rootNode);
 
@@ -39,13 +40,15 @@ public class Translator {
         }
     }
 
+    // runs all of the 5 phases at once
     public void run() {
         makeHeaderAst();
         makeHeaderFile();
         makeMutatedAst();
         makeImplementationFiles();
     }
-
+    
+    // makes a C++ Header AST and returns its root node
     public GNode makeHeaderAst() {
         JavaAstVisitor v = new JavaAstVisitor();
         HeaderASTMaker build;
@@ -54,6 +57,7 @@ public class Translator {
         return headerAst;
     }
 
+    // makes a C++ Header file based on the header AST
     public void makeHeaderFile() {
         if (null == headerAst) {
             makeHeaderAst();

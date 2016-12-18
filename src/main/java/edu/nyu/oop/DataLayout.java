@@ -7,6 +7,7 @@ import xtc.tree.Node;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class DataLayout {
     ClassInfo c;
@@ -100,17 +101,19 @@ public class DataLayout {
         }
 
         for (MethodInfo method: c.getMethods()) {
-            GNode newMethod = makeDLMethod(c.getName(),"static", method.getName(), method.getReturnType().getString(0), method.getParameters());
+            GNode newMethod = makeDLMethod(c.getName(), method.getModifiers(), method.getName(), method.getReturnType().getString(0), method.getParameters());
             methodDecs.add(newMethod);
         }
 
-        GNode classObject = makeDLMethod(null, "static", "__class", "Class", null);
+        ArrayList<String> classMods = new ArrayList<String>();
+        classMods.add("static");
+        GNode classObject = makeDLMethod(null, classMods, "__class", "Class", null);
         methodDecs.add(classObject);
         return methodDecs;
     }
 
     // Creates and returns the node representing a single init method
-    static GNode makeInitMethod(String className, String modifier, String name, String returnType, GNode parameters) {
+    private static GNode makeInitMethod(String className, String modifier, String name, String returnType, GNode parameters) {
         GNode newMethod = GNode.create("DLMethodDeclaration");
 
         GNode mod = GNode.create("Modifier");
@@ -139,16 +142,16 @@ public class DataLayout {
     }
 
     // Creates and returns the node representing a single method in the Data Layout
-    static GNode makeDLMethod(String className, String modifier, String name, String returnType, ArrayList<String> parameters) {
+    static GNode makeDLMethod(String className, List<String> modifiers, String name, String returnType, ArrayList<String> parameters) {
         GNode newMethod = GNode.create("DLMethodDeclaration");
 
-        GNode mod = GNode.create("Modifier");
+        GNode mod = GNode.create("Modifiers");
         GNode methodName = GNode.create("MethodName");
         GNode rType = GNode.create("ReturnType");
         GNode params = GNode.create("Parameters");
 
 
-        mod.add(modifier);
+        mod.addAll(modifiers);
         methodName.add(name);
         rType.add(returnType);
         if (className != null) {

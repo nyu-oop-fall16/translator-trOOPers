@@ -1,5 +1,6 @@
 package edu.nyu.oop;
 
+import edu.nyu.oop.util.ChildToParentMap;
 import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
@@ -8,27 +9,29 @@ public class ClassDeclarationMutator extends Visitor {
     String className;
     String classExtension;
     ClassBodyMutator classBody;
+    ChildToParentMap map;
 
     /**
      * Constructs an object of ClassDeclarationMutator which holds the class's name and its class body.
      * @param n a ClassDeclaration node
      */
-    private ClassDeclarationMutator(GNode n){
+    private ClassDeclarationMutator(GNode n, ChildToParentMap map){
+        this.map = map;
         this.className = n.getString(1);
         this.classExtension = (n.get(3) == null) ? null:n.getNode(3).getNode(0).getNode(0).getString(0);
         super.dispatch(n); // dispatch to run visit to ClassBody node and set classBody to results
     }
 
     // create a new instance of class
-    public static ClassDeclarationMutator getClassDeclarationMutator(GNode n){
-        ClassDeclarationMutator newClass = new ClassDeclarationMutator(n);
+    public static ClassDeclarationMutator getClassDeclarationMutator(GNode n, ChildToParentMap map){
+        ClassDeclarationMutator newClass = new ClassDeclarationMutator(n,map);
         return newClass;
     }
 
     // visit class body and create a new instance of class body
     public void visitClassBody(GNode n){
         // call ClassBodyMutator
-        this.classBody = ClassBodyMutator.classMethodAndConstructor(n, this.className, this.classExtension);
+        this.classBody = ClassBodyMutator.classMethodAndConstructor(n, this.className, this.classExtension, map);
     }
 
     /**

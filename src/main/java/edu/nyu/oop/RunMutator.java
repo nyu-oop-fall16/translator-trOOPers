@@ -20,6 +20,9 @@ public class RunMutator extends Visitor{
             classes.add(newClass);
         }
         // else if main class
+
+
+        visit(n);
     }
 
     // return the list of classes and

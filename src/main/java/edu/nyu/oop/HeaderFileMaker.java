@@ -85,20 +85,21 @@ public class HeaderFileMaker extends Visitor {
     // This method visits and saves all of the fields in a given class to that class' HeaderClassPrinter.
     public void visitFieldDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
-        for (int i = 1; i < n.size(); i++) {
+        for (int i = 0; i < n.size(); i++) {
             Node fieldInfo = n.getNode(i);
-            for (int j = 0; j < fieldInfo.size(); j++) {
-                if (!fieldInfo.isEmpty() && !fieldInfo.getName().equals("FieldInitialization") && !fieldInfo.getString(j).equals("private")) {
-                    hcp.addToDL(fieldInfo.getString(j));
+            if (!fieldInfo.isEmpty()) {
+                boolean somethingAdded = false;
+                for (int j = 0; j < fieldInfo.size(); j++) {
+                    if (!fieldInfo.getString(j).equals("public") && !fieldInfo.getString(j).equals("private")) {
+                        hcp.addToDL(fieldInfo.getString(j));
+                        somethingAdded = true;
+                    }
                 }
-                if (fieldInfo.getName().equals("FieldInitialization") && fieldInfo.get(0) != null) {
-                    hcp.addToDL("= " + fieldInfo.getString(j));
+                if (i < n.size()-1 && somethingAdded) {
+                    hcp.addToDL(" ");
+                } else if (i == n.size()-1) {
+                    hcp.addToDL(";\n");
                 }
-            }
-            if (i < n.size()-1) {
-                hcp.addToDL(" ");
-            } else {
-                hcp.addToDL(";\n");
             }
         }
         hcp.addToDL("\n");
@@ -126,7 +127,7 @@ public class HeaderFileMaker extends Visitor {
     // data layout.
     public void visitDLMethodDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
-        hcp.addToDL(n.getNode(0).getString(0) + " " + n.getNode(2).getString(0) + " " + n.getNode(1).getString(0) + "("); // print modifier "static", return type, and method name
+        hcp.addToDL(/*n.getNode(0).getString(0) +*/ "static " + n.getNode(2).getString(0) + " " + n.getNode(1).getString(0) + "("); // print modifier "static", return type, and method name
         Node methodParameters = n.getNode(3);
         StringBuffer s = addParamsToBuffer(methodParameters);
         hcp.addToDL(s + ";\n");

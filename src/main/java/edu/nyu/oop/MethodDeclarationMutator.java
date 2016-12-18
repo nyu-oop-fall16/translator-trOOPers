@@ -10,12 +10,14 @@ public class MethodDeclarationMutator extends Visitor{
     String methodName;
     ArrayList<String[]> parameters;
     String className;
+    BlockMutator block;
 
-    private MethodDeclarationMutator(String returnType, String methodName, ArrayList<String[]> parameters, String className){
+    private MethodDeclarationMutator(GNode n, String returnType, String methodName, ArrayList<String[]> parameters, String className){
         this.returnType = returnType;
         this.methodName = methodName;
         this.parameters = parameters;
         this.className = className;
+        super.dispatch(n);
     }
 
     /*
@@ -40,7 +42,7 @@ public class MethodDeclarationMutator extends Visitor{
         ArrayList<String[]> parameters = new ArrayList<String[]>();
         parameters = Mutator.getFormalParameters(n);
 
-        MethodDeclarationMutator newMethod = new MethodDeclarationMutator(returnType, methodName, parameters, className);
+        MethodDeclarationMutator newMethod = new MethodDeclarationMutator(n, returnType, methodName, parameters, className);
         return newMethod;
     }
 
@@ -77,8 +79,44 @@ public class MethodDeclarationMutator extends Visitor{
                 parametersList += ", ";
             }
         }
-        methodImplementation.append(parametersList + "){\n");
-        methodImplementation.append("\tBLIOCK STUFF \n}");
+        methodImplementation.append(parametersList + "){\n\t");
+        ArrayList<FieldDeclarationMutator> fields = block.fields;
+        for(int e = 0; e < fields.size(); e++){
+            methodImplementation.append(fields.get(e).fieldMember[0] + " " + fields.get(e).fieldMember[1] );
+
+        }
+        ArrayList<String> expressions = block.expressionStatement;
+        for(int e = 0; e < expressions.size(); e++){
+            methodImplementation.append(expressions.get(e));
+        }
+
+        ArrayList<String> callExpressions = block.callExpression;
+        for(int e = 0; e<callExpressions.size(); e++){
+            methodImplementation.append(callExpressions.get(e));
+        }
+//        methodImplementation.append(";\n");
+
+        String returnExpression = block.returnStatement;
+        if(returnExpression != null) {
+            methodImplementation.append(returnExpression + ";\n");
+        }
+
+        methodImplementation.append("\n}");
         System.out.println(methodImplementation);
+    }
+
+    public void visitBlock(GNode n){
+        BlockMutator newBlock = BlockMutator.getBlock(n, parameters, className);
+        this.block = newBlock;
+    }
+
+    /**
+     * Dispatch to the children of a given root node.
+     * @param n the root node given
+     */
+    public void visit(Node n){
+        for (Object o : n) {
+            if (o instanceof Node) dispatch((Node) o);
+        }
     }
 }

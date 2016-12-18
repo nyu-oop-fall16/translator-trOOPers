@@ -13,19 +13,21 @@ public class ClassBodyMutator extends Visitor {
     ArrayList<ConstructorDeclarationMutator> initConstructors;
     ArrayList<MethodDeclarationMutator> methods;
     ArrayList<FieldDeclarationMutator> fields;
-
+    boolean isMain;
 
     /**
      * Constructs an object of ClassBodyMutator which holds the class's name and its class body.
      */
-    private ClassBodyMutator(){
+    private ClassBodyMutator(boolean isMainClass) {
         this.initConstructors = new ArrayList<ConstructorDeclarationMutator>();
         this.methods = new ArrayList<MethodDeclarationMutator>();
         this.fields = new ArrayList<FieldDeclarationMutator>();
+        this.isMain = isMainClass;
     }
 
-    public static ClassBodyMutator classMethodAndConstructor(GNode n, String className, String classExtension, ChildToParentMap map){
-        ClassBodyMutator newClass = new ClassBodyMutator();
+    // getting class body of classes that don't contain main
+    public static ClassBodyMutator regularClass(GNode n, String className, String classExtension, ChildToParentMap map, boolean isMain) {
+        ClassBodyMutator newClass = new ClassBodyMutator(isMain);
 
         newClass.className = className;
         newClass.classExtension = classExtension;
@@ -37,8 +39,18 @@ public class ClassBodyMutator extends Visitor {
         return newClass;
     }
 
-    public void handleMethods(GNode n){
-        new Visitor(){
+    // getting class body of main class
+    public static ClassBodyMutator mainClass(GNode n, ChildToParentMap map, boolean isMain){
+        ClassBodyMutator mainClass = new ClassBodyMutator(isMain);
+
+        mainClass.handleFields(n, map);
+        mainClass.handleMethods(n);
+
+        return mainClass;
+    }
+
+    public void handleMethods(GNode n) {
+        new Visitor() {
             public void visitMethodDeclaration(GNode n) {
                 methods.add(MethodDeclarationMutator.methodSignatureInfo(n, className)); // add each new method signature to method list
                 methods.get(methods.size()-1).addImplicitThis(); // add implicit this to parameter list of the method
@@ -50,16 +62,16 @@ public class ClassBodyMutator extends Visitor {
              * Dispatch to the children of a given root node.
              * @param n the root node given
              */
-            public void visit(Node n){
+            public void visit(Node n) {
                 for (Object o : n) {
                     if (o instanceof Node) dispatch((Node) o);
                 }
             }
-        }.dispatch(n);
+        } .dispatch(n);
     }
 
-    public void handleConstructors(GNode n){
-        new Visitor(){
+    public void handleConstructors(GNode n) {
+        new Visitor() {
             public void visitConstructorDeclaration(GNode n) {
                 // add each new constructor to constructor list
                 initConstructors.add(ConstructorDeclarationMutator.initSignatureInfo(n, className));
@@ -71,35 +83,38 @@ public class ClassBodyMutator extends Visitor {
              * Dispatch to the children of a given root node.
              * @param n the root node given
              */
-            public void visit(Node n){
+            public void visit(Node n) {
                 for (Object o : n) {
                     if (o instanceof Node) dispatch((Node) o);
                 }
             }
-        }.dispatch(n);
+        } .dispatch(n);
     }
 
-    public void handleFields(GNode n, final ChildToParentMap map){
-        new Visitor(){
-            public void visitFieldDeclaration(GNode n){
+    public void handleFields(GNode n, final ChildToParentMap map) {
+        new Visitor() {
+            public void visitFieldDeclaration(GNode n) {
                 // add each new field to fields list if parent is class body
                 GNode parentOfField = (GNode)map.fetchParentFor(n);
                 if(parentOfField.getName().equals("ClassBody")) {
-                    fields.add(FieldDeclarationMutator.getClassField(n));
+                    if(isMain) {
+                        fields.add(FieldDeclarationMutator.mainFieldMembers(n)); // regular class fields
+                    }
+                    else{
+                        fields.add(FieldDeclarationMutator.classFieldMembers(n)); // main's class fields
+                    }
                 }
-
-                // call different method for main class's fields
             }
 
             /**
              * Dispatch to the children of a given root node.
              * @param n the root node given
              */
-            public void visit(Node n){
+            public void visit(Node n) {
                 for (Object o : n) {
                     if (o instanceof Node) dispatch((Node) o);
                 }
             }
-        }.dispatch(n);
+        } .dispatch(n);
     }
 }

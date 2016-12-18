@@ -2,15 +2,15 @@ This translator contains the following classes, all of which are either new or m
 * JavaFiveImportParser.java 
 * JavaAstVisitor.java
 * HeaderAstMaker.java 
+* DataLayout.java
+* VTable.java
 * ClassInfo.java
 * MethodInfo.java 
 * HeaderFileMaker.java 
 * HeaderClassPrinter.java 
 * AggregatedHeaderPrinter.java 
-* MutateJavaAst.java
-* OutputCppMaker.java 
-* MainCppMaker.java
 * Boot.java
+* Translator.java
 
 In order to run the translator, the user must call sbt from the terminal in the translator directory and then call "runTranslator". The files output.h, output.cpp, and main.cpp in the output folder will then be modified accordingly.
 
@@ -34,8 +34,5 @@ To run unit tests, in sbt do any of the following:
 
 In order, the tests are for Phase 1, Phase 2, Phase 3, Phase 4, and Phase 5.
 
-The translator supports inheritance and dynamic dispatch, Java package imports, and standard Java field and method declarations. 
+The translator supports inheritance and dynamic dispatch, Java package imports, standard Java field and method declarations, method overloading, constructor overloading, method overriding, and arrays. The translator does NOT support memory management; it implements the delegation design pattern instead.
 Any files containing a main method must encapsulate that method in a class that contains nothing else. The name of this class must be the same as the name of the file.
-
-The translator does NOT support complex types like arrays. 
-

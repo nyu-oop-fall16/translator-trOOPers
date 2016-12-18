@@ -3,12 +3,11 @@ package edu.nyu.oop;
 import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
-
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 
 public class ClassBodyMutator extends Visitor {
     String className;
+    String classExtension;
     ArrayList<ConstructorDeclarationMutator> constructors;
     ArrayList<MethodDeclarationMutator> methods;
     ArrayList<FieldDeclarationMutator> fields;
@@ -22,10 +21,11 @@ public class ClassBodyMutator extends Visitor {
         this.fields = new ArrayList<FieldDeclarationMutator>();
     }
 
-    public static ClassBodyMutator classMethodAndConstructor(GNode n, String className){
+    public static ClassBodyMutator classMethodAndConstructor(GNode n, String className, String classExtension){
         ClassBodyMutator newClass = new ClassBodyMutator();
 
         newClass.className = className;
+        newClass.classExtension = classExtension;
         newClass.handleMethods(n); // handle methods
         newClass.handleConstructors(n); // handle constructors
         newClass.handleFields(n); // handle fields
@@ -36,7 +36,8 @@ public class ClassBodyMutator extends Visitor {
     public void handleMethods(GNode n){
         new Visitor(){
             public void visitMethodDeclaration(GNode n) {
-                methods.add(MethodDeclarationMutator.methodSignatureInfo(n)); // add each new method signature to method list
+                methods.add(MethodDeclarationMutator.methodSignatureInfo(n, className)); // add each new method signature to method list
+                methods.get(methods.size()-1).addImplicitThis(); // add implicit this to parameter list of the method
                 MethodDeclarationMutator.mutateMethod(n); // call method to mutate the node to reflect C++
 
                 visit(n);
@@ -77,7 +78,7 @@ public class ClassBodyMutator extends Visitor {
         new Visitor(){
             public void visitFieldDeclaration(GNode n) {
                 // add each new field to feilds list
-
+                fields.add(FieldDeclarationMutator.getClassField(n));
             }
 
             /**

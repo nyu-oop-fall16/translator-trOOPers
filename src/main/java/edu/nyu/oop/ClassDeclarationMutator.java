@@ -63,8 +63,8 @@ public class ClassDeclarationMutator extends Visitor {
         classImplementation.append(methodCall);
         String classType = "\n\tstatic Class k = new __Class(__rt::literal(\"java.lang.";
         classImplementation.append(classType);
-        String superTypePrint = (classExtension == null) ? "Object":className;
-        classImplementation.append(superTypePrint + "\"), (Class) ");
+        String classTypePrint = className;
+        classImplementation.append(classTypePrint + "\"), (Class) ");
         String superType = (classExtension == null) ? "__Object" : "__" + classExtension;
         classImplementation.append(superType + "::__class();\n\treturn k;\n}");
         System.out.println(classImplementation);
@@ -79,4 +79,5 @@ public class ClassDeclarationMutator extends Visitor {
         vtable.append(vtCall);
         System.out.println(vtable);
     }
+
 }

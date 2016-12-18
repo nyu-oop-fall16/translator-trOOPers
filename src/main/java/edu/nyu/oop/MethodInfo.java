@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MethodInfo {
-    // private boolean ifStatic;
     private GNode returnType;
     private String name;
     private ArrayList<String> mParameters = new ArrayList<String>();

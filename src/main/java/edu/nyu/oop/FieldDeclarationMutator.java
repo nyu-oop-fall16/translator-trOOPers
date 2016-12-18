@@ -7,51 +7,44 @@ import xtc.tree.GNode;
 import java.util.ArrayList;
 
 public class FieldDeclarationMutator{
-    ArrayList<String[]> fieldMembers = new ArrayList<String[]>();
-    ArrayList<String[]> mainFieldMembers = new ArrayList<String[]>();
+    String[] fieldMember;
+    String[] mainFieldMember;
+
+    private FieldDeclarationMutator(String[] fieldMember, String[] mainFieldMember){
+        this.fieldMember = fieldMember;
+        this.mainFieldMember = mainFieldMember;
+    }
+
+    public static FieldDeclarationMutator getClassField(GNode n){
+        FieldDeclarationMutator newField = classFieldMembers(n);
+        return newField;
+    }
+
+    public static FieldDeclarationMutator getMainField(GNode n){
+        FieldDeclarationMutator newField = mainFieldMembers(n);
+        return newField;
+    }
 
 
     // visit FieldDeclaration node
-    public void classFieldMembers(GNode n){
-        new Visitor(){
-            public void visitFieldDeclaration(GNode n) {
-                String[] field = new String[2];
-                field[0] = n.getNode(1).getNode(0).getString(0); // gets the type
-                field[1] = n.getNode(2).getNode(0).getString(0); // gets the name of the field
-                fieldMembers.add(field);
-            }
+    public static FieldDeclarationMutator classFieldMembers(GNode n){
+        String[] field = new String[2];
+        field[0] = n.getNode(1).getNode(0).getString(0); // gets the type
+        field[1] = n.getNode(2).getNode(0).getString(0); // gets the name of the field
+        String[] mainField = new String[3];
 
-            /**
-             * Dispatch to the children of a given root node.
-             * @param n the root node given
-             */
-            public void visit(Node n){
-                for (Object o : n) {
-                    if (o instanceof Node) dispatch((Node) o);
-                }
-            }
-        }.dispatch(n);
+        FieldDeclarationMutator newField = new FieldDeclarationMutator(field, mainField);
+        return newField;
     }
 
-   public void mainFieldMembers(GNode n){
-        new Visitor(){
-            public void visitFieldDeclaration(GNode n) {
-                String[] field = new String[3];
-                field[0] = n.getNode(0).getNode(0).getString(0); // gets modifier
-                field[1] = n.getNode(1).getNode(0).getString(0); // gets the type
-                field[2] = n.getNode(2).getNode(0).getString(0); // gets the name of the field
-                mainFieldMembers.add(field);
-            }
+   public static FieldDeclarationMutator mainFieldMembers(GNode n){
+       String[] field = new String[3];
+       field[0] = n.getNode(0).getNode(0).getString(0); // gets modifier
+       field[1] = n.getNode(1).getNode(0).getString(0); // gets the type
+       field[2] = n.getNode(2).getNode(0).getString(0); // gets the name of the field
+       String[] classField = new String[2];
 
-            /**
-             * Dispatch to the children of a given root node.
-             * @param n the root node given
-             */
-            public void visit(Node n){
-                for (Object o : n) {
-                    if (o instanceof Node) dispatch((Node) o);
-                }
-            }
-        }.dispatch(n);
-    }
+       FieldDeclarationMutator newField = new FieldDeclarationMutator(classField, field);
+       return newField;
+   }
 }

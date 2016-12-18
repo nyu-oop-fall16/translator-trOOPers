@@ -4,6 +4,7 @@ import xtc.tree.Node;
 import xtc.tree.GNode;
 import xtc.tree.Visitor;
 import java.util.ArrayList;
+import edu.nyu.oop.util.ChildToParentMap;
 
 public class ClassBodyMutator extends Visitor {
     String className;
@@ -23,14 +24,14 @@ public class ClassBodyMutator extends Visitor {
         this.fields = new ArrayList<FieldDeclarationMutator>();
     }
 
-    public static ClassBodyMutator classMethodAndConstructor(GNode n, String className, String classExtension){
+    public static ClassBodyMutator classMethodAndConstructor(GNode n, String className, String classExtension, ChildToParentMap map){
         ClassBodyMutator newClass = new ClassBodyMutator();
 
         newClass.className = className;
         newClass.classExtension = classExtension;
         newClass.handleMethods(n); // handle methods
         newClass.handleConstructors(n); // handle constructors
-        newClass.handleFields(n); // handle fields
+        newClass.handleFields(n, map); // handle fields
         newClass.constructor = "__" + className + "::__" + className + "() : __vptr(&__vtable) {}";
 
         return newClass;
@@ -78,11 +79,16 @@ public class ClassBodyMutator extends Visitor {
         }.dispatch(n);
     }
 
-    public void handleFields(GNode n){
+    public void handleFields(GNode n, final ChildToParentMap map){
         new Visitor(){
-            public void visitFieldDeclaration(GNode n) {
-                // add each new field to feilds list
-                fields.add(FieldDeclarationMutator.getClassField(n));
+            public void visitFieldDeclaration(GNode n){
+                // add each new field to fields list if parent is class body
+                GNode parentOfField = (GNode)map.fetchParentFor(n);
+                if(parentOfField.getName().equals("ClassBody")) {
+                    fields.add(FieldDeclarationMutator.getClassField(n));
+                }
+
+                // call different method for main class's fields
             }
 
             /**

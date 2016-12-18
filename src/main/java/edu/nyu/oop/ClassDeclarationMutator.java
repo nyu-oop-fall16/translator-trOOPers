@@ -41,6 +41,10 @@ public class ClassDeclarationMutator extends Visitor {
         }
     }
 
+    public void printConstructor(){
+        System.out.println(classBody.constructor);
+    }
+
     // prints the implementation of the __class() of each class
     public void printClassMethod(){
         StringBuffer classImplementation = new StringBuffer();

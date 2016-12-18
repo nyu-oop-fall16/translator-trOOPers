@@ -218,38 +218,10 @@ public class Boot extends Tool {
             mainMaker.printToMainCpp(mainContent);
         }
 
-        if(runtime.test("runMutators")){
+        if(runtime.test("runMutators")) {
             RunMutator run = new RunMutator();
-            run.printBeginning(listGNodes.get(0));
-//            ArrayList<ClassDeclarationMutator> classes = run.getClasses(listGNodes.get(0));
-//            for(int i = 0; i < classes.size(); i++){
-//                String className = classes.get(i).className;
-//                System.out.println(className);
-//                String classExtension = classes.get(i).classExtension;
-//                System.out.println(classExtension);
-//
-//                classes.get(i).printClassMethod();
-//                classes.get(i).printVTable();
-//                classes.get(i).printConstructor();
-//
-//                ArrayList<MethodDeclarationMutator> methodList = classes.get(i).classBody.methods;
-//                for(int j = 0; j < methodList.size(); j++){
-//                    System.out.println(methodList.get(j).returnType + " " + methodList.get(j).methodName);
-//                    methodList.get(j).printMethodImplementation();
-//                }
-//
-//                ArrayList<FieldDeclarationMutator> fieldsList = classes.get(i).classBody.fields;
-//                for(int j = 0; j < fieldsList.size(); j++){
-//                    System.out.println(fieldsList.get(j).fieldMember[0] + " " + fieldsList.get(j).fieldMember[1]);
-//                }
-//
-//                ArrayList<ConstructorDeclarationMutator> constructorsList = classes.get(i).classBody.initConstructors;
-//                for(int j = 0; j < constructorsList.size(); j++){
-//                    System.out.println(constructorsList.get(j).initName);
-//                    constructorsList.get(j).printInitMethod();
-//                }
-//            }
-
+            run.printOutput(listGNodes.get(0));
+            run.printMain(listGNodes.get(0));
         }
     }
 

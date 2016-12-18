@@ -8,15 +8,17 @@ import java.util.ArrayList;
 public class ClassBodyMutator extends Visitor {
     String className;
     String classExtension;
-    ArrayList<ConstructorDeclarationMutator> constructors;
+    String constructor; // the single constructor line to get initialize __vptr
+    ArrayList<ConstructorDeclarationMutator> initConstructors;
     ArrayList<MethodDeclarationMutator> methods;
     ArrayList<FieldDeclarationMutator> fields;
+
 
     /**
      * Constructs an object of ClassBodyMutator which holds the class's name and its class body.
      */
     private ClassBodyMutator(){
-        this.constructors = new ArrayList<ConstructorDeclarationMutator>();
+        this.initConstructors = new ArrayList<ConstructorDeclarationMutator>();
         this.methods = new ArrayList<MethodDeclarationMutator>();
         this.fields = new ArrayList<FieldDeclarationMutator>();
     }
@@ -29,6 +31,7 @@ public class ClassBodyMutator extends Visitor {
         newClass.handleMethods(n); // handle methods
         newClass.handleConstructors(n); // handle constructors
         newClass.handleFields(n); // handle fields
+        newClass.constructor = "__" + className + "::__" + className + "() : __vptr(&__vtable) {}";
 
         return newClass;
     }
@@ -38,8 +41,7 @@ public class ClassBodyMutator extends Visitor {
             public void visitMethodDeclaration(GNode n) {
                 methods.add(MethodDeclarationMutator.methodSignatureInfo(n, className)); // add each new method signature to method list
                 methods.get(methods.size()-1).addImplicitThis(); // add implicit this to parameter list of the method
-                MethodDeclarationMutator.mutateMethod(n); // call method to mutate the node to reflect C++
-
+//                MethodDeclarationMutator.mutateMethod(n); // call method to mutate the node to reflect C++
                 visit(n);
             }
 
@@ -59,7 +61,9 @@ public class ClassBodyMutator extends Visitor {
         new Visitor(){
             public void visitConstructorDeclaration(GNode n) {
                 // add each new constructor to constructor list
-
+                initConstructors.add(ConstructorDeclarationMutator.initSignatureInfo(n, className));
+                initConstructors.get(initConstructors.size()-1).addImplicitThis();
+                visit(n);
             }
 
             /**

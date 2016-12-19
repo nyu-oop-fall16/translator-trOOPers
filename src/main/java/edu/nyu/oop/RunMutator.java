@@ -84,6 +84,13 @@ public class RunMutator extends Visitor {
             classes.get(i).printVTable(outputWriter);
         }
         outputWriter.println("\t}\n}");
+        
+        outputWriter.println("namespace __rt { ");
+        for (int i = 0; i < classes.size(); i++) {
+            classes.get(i).printArraySpecialization(outputWriter);
+        }
+
+        outputWriter.println("\t}\n}");
         outputWriter.close();
     }
 

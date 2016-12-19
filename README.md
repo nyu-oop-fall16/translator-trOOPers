@@ -12,7 +12,7 @@ This translator contains the following classes, all of which are either new or m
 * Boot.java
 * Translator.java
 
-In order to run the translator, the user must call sbt from the terminal in the translator directory and then call "runTranslator". The files output.h, output.cpp, and main.cpp in the output folder will then be modified accordingly.
+In order to run the translator WITHOUT using the shell script, the user must call sbt from the terminal in the translator directory and then call "runTranslator". The files output.h, output.cpp, and main.cpp in the output folder will then be modified accordingly.
 
 In sbt do:
   
@@ -34,5 +34,7 @@ To run unit tests, in sbt do any of the following:
 
 In order, the tests are for Phase 1, Phase 2, Phase 3, Phase 4, and Phase 5.
 
-The translator supports inheritance and dynamic dispatch, Java package imports, standard Java field and method declarations, method overloading, constructor overloading, method overriding, and arrays. The translator does NOT support memory management; it implements the delegation design pattern instead.
+To run the translator using the shell script, extract the shell script folder from src/main/java/edu/nyu/oop/util. Put it on the desktop or whatever location on the computer is preferred. Make a new folder in ScriptPrinter/ScripterCaller/src called "Translators" and clone the translator into that folder. Compile and run ScriptCaller.java and follow the instructors printed in the shell.
+
+The translator supports inheritance and dynamic dispatch, Java package imports, standard Java field and method declarations, method overloading, constructor overloading, method overriding, and arrays to varying degrees in each of the phases. The translator does NOT support memory management; it implements the delegation design pattern instead.
 Any files containing a main method must encapsulate that method in a class that contains nothing else. The name of this class must be the same as the name of the file.

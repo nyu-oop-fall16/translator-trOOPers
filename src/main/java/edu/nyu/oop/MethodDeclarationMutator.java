@@ -14,7 +14,8 @@ public class MethodDeclarationMutator extends Visitor {
     BlockMutator block;
     MainBlockMutator mainBlock;
     boolean isMain;
-    ArrayList<FieldDeclarationMutator> fields;
+    ArrayList<FieldDeclarationMutator> fields = new ArrayList<FieldDeclarationMutator>();
+    static ArrayList<FieldDeclarationMutator> classFields = new ArrayList<FieldDeclarationMutator>();
 
     private MethodDeclarationMutator(GNode n, String returnType, String methodName, ArrayList<String[]> parameters, String className, boolean isMain, ArrayList<FieldDeclarationMutator> fields) {
         this.returnType = returnType;
@@ -22,7 +23,7 @@ public class MethodDeclarationMutator extends Visitor {
         this.parameters = parameters;
         this.className = className;
         this.isMain = isMain;
-        this.fields = fields;
+        this.classFields = fields;
         super.dispatch(n);
     }
 
@@ -57,8 +58,6 @@ public class MethodDeclarationMutator extends Visitor {
         if(isMain) {
             if(mainBlock != null) {
                 methodImplementation.append("{\n\t");
-//                String fields = mainBlock.fields;
-//                methodImplementation.append(fields + "\n");
                 String beginBrace = mainBlock.beginBrace;
                 methodImplementation.append(beginBrace);
                 for(int j = 0; j < fields.size(); j++) {
@@ -73,9 +72,6 @@ public class MethodDeclarationMutator extends Visitor {
                     }
                 }
 
-//                String inits = mainBlock.inits;
-//                methodImplementation.append(inits + "\n");
-
                 ArrayList<String> expressions = mainBlock.expressionStatement;
                 for (int e = 0; e < expressions.size(); e++) {
                     methodImplementation.append(expressions.get(e));
@@ -85,8 +81,6 @@ public class MethodDeclarationMutator extends Visitor {
                 for (int e = 0; e < callExpressions.size(); e++) {
                     methodImplementation.append(callExpressions.get(e));
                 }
-
-//        methodImplementation.append(";\n");
 
                 String returnExpression = mainBlock.returnStatement;
                 if (returnExpression != null) {

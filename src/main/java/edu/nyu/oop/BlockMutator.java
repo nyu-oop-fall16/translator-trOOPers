@@ -27,7 +27,7 @@ public class BlockMutator extends Visitor {
     }
 
     public void visitFieldDeclaration(GNode n){
-        FieldDeclarationMutator newField = FieldDeclarationMutator.getClassField(n);
+        FieldDeclarationMutator newField = FieldDeclarationMutator.classFieldMembers(n);
         declarators.add(newField.fieldMember[1]);
         fields.add(newField);
     }
@@ -174,8 +174,28 @@ public class BlockMutator extends Visitor {
 
     public void visitReturnStatement(GNode n){
         //visit primaryIdentifier
-        String returnValue = n.getNode(0).getString(0);
-        String newReturn = "__this ->" + returnValue;
+
+        String returnValue;
+        String methodName;
+        String newReturn = "__this ->";
+        if(n.getNode(0).getName().equals("StringLiteral")){
+            returnValue = n.getNode(0).getString(0);
+            newReturn = newReturn + "new __String(" + returnValue + ")";
+        }
+        else if(n.getNode(0).getName().equals("IntegerLiteral")){
+            returnValue = n.getNode(0).getString(0);
+            newReturn = returnValue;
+        }
+        //method
+        else if(n.getNode(0).getName().equals("CallExpression")){
+            returnValue = n.getNode(0).getNode(0).getString(0);
+            methodName = n.getNode(0).getString(2);
+            newReturn = newReturn + returnValue + "->__vptr->" + methodName + "(__this->" + returnValue + ")";
+        }
+        else{
+            returnValue = n.getNode(0).getString(0);
+            newReturn = newReturn + returnValue;
+        }
         returnStatement ="return " + newReturn;
     }
 

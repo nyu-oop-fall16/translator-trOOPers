@@ -110,14 +110,15 @@ public class RunMutator extends Visitor {
         beginning.append("using namespace java::lang;\n");
         String testName = n.getNode(0).getNode(1).getString(1);
         beginning.append("using namespace inputs::" + testName + ";\n");
+        
+        ClassDeclarationMutator mainClass = getMainClass(n); // dispatch called
+        ArrayList<FieldDeclarationMutator> fields = mainClass.classBody.fields;
+        for(int j = 0; j < fields.size(); j++) {
+            beginning.append(fields.get(j).fieldMember[0] + " " + fields.get(j).fieldMember[1] + " " + fields.get(j).fieldMember[2] + ";\n");
+        }
+        
         beginning.append("int main() \n");
         mainWriter.println(beginning);
-
-        ClassDeclarationMutator mainClass = getMainClass(n); // dispatch called
-//        ArrayList<FieldDeclarationMutator> fields = mainClass.classBody.fields;
-//        for(int j = 0; j < fields.size(); j++) {
-//            mainWriter.println(fields.get(j).fieldMember[0] + " " + fields.get(j).fieldMember[1] + " " + fields.get(j).fieldMember[2] + ";\n");
-//        }
 
         ArrayList<MethodDeclarationMutator> method = mainClass.classBody.methods;
         MethodDeclarationMutator mainMethod = method.get(0);

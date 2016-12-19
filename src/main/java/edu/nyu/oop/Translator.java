@@ -42,6 +42,7 @@ public class Translator {
 
     // runs all of the 5 phases at once
     public void run() {
+        generateGNodes();
         makeHeaderAst();
         makeHeaderFile();
         makeImplementationFiles();
@@ -49,6 +50,7 @@ public class Translator {
 
     // makes a C++ Header AST and returns its root node
     public GNode makeHeaderAst() {
+        generateGNodes();
         JavaAstVisitor v = new JavaAstVisitor();
         HeaderASTMaker build;
         build = v.getBuildInfo(rootNode);
@@ -66,6 +68,7 @@ public class Translator {
     }
 
     public void makeImplementationFiles() {
+        generateGNodes();
         RunMutator run = new RunMutator();
         run.printOutput(listGNodes.get(0));
         run.printMain(listGNodes.get(0));

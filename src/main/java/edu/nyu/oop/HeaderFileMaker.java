@@ -113,13 +113,7 @@ public class HeaderFileMaker extends Visitor {
 
     public void visitConstructorDeclaration(GNode n) {
         HeaderClassPrinter hcp = printer.getPrinter(className);
-        hcp.addToDL(n.getNode(0).getString(0)+"("); // prints name
-        Node constParams = n.getNode(1); // get constructorParameters node
-        for (int i = 0; i < constParams.size(); i++) {
-            Node constP = constParams.getNode(i);
-            hcp.addToDL(constP.getNode(0).getString(0) + " " + constP.getNode(1).getString(0));
-        }
-        hcp.addToDL(");\n\n");
+        hcp.addToDL(n.getNode(0).getString(0)+"();\n\n");
         visit(n);
     }
 

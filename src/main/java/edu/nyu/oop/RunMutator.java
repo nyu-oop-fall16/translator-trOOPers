@@ -95,7 +95,7 @@ public class RunMutator extends Visitor {
             classes.get(i).printArraySpecialization(outputWriter);
         }
 
-        outputWriter.println("\t}\n}");
+        outputWriter.println("\n}");
 
         outputWriter.close();
     }

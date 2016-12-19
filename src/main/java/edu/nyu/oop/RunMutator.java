@@ -13,8 +13,6 @@ import edu.nyu.oop.util.ChildToParentMap;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import edu.nyu.oop.util.ChildToParentMap;
 
 public class RunMutator extends Visitor {
 
@@ -22,9 +20,14 @@ public class RunMutator extends Visitor {
 
     ArrayList<ClassDeclarationMutator> classes = new ArrayList<ClassDeclarationMutator>();
     ClassDeclarationMutator main = null;
+    String testName = "";
 
     public void visit(Node n) {
         for (Object o : n) if (o instanceof Node) dispatch((Node) o);
+    }
+
+    public void visitPackageDeclaration(GNode n) {
+        testName = n.getNode(1).getString(1);
     }
 
     public void visitClassDeclaration(GNode n) {
@@ -32,11 +35,13 @@ public class RunMutator extends Visitor {
         // if not main class
         if(!(n.getString(1).contains("Test"))) {
             ClassDeclarationMutator newClass = ClassDeclarationMutator.getClassDeclarationMutator(n,map,false); // create an object
+            newClass.setTestName(testName);
             classes.add(newClass);
         }
         // else if main class
         else {
             ClassDeclarationMutator newClass = ClassDeclarationMutator.getClassDeclarationMutator(n,map,true); // create an object
+            newClass.setTestName(testName);
             main = newClass;
         }
         visit(n);
@@ -84,13 +89,14 @@ public class RunMutator extends Visitor {
             classes.get(i).printVTable(outputWriter);
         }
         outputWriter.println("\t}\n}");
-        
+
         outputWriter.println("namespace __rt { ");
         for (int i = 0; i < classes.size(); i++) {
             classes.get(i).printArraySpecialization(outputWriter);
         }
 
         outputWriter.println("\t}\n}");
+
         outputWriter.close();
     }
 

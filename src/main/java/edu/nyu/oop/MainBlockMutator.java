@@ -36,10 +36,14 @@ public class MainBlockMutator extends Visitor {
         return block;
     }
 
-    public void visitBlock(GNode n){
-        String beginBrace = "{";
+     public void visitBlock(GNode n) {
+        if(n.getNode(0).getName().equals("Block")){
+            beginBrace = "{";
+            endBrace = "}";
+        }
+
         visit(n);
-        String endBrace = "}";
+
     }
 
     public void visitFieldDeclaration(GNode n) {

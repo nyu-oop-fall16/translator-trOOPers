@@ -82,7 +82,7 @@ public class MethodDeclarationMutator extends Visitor{
         methodImplementation.append(parametersList + "){\n\t");
         ArrayList<FieldDeclarationMutator> fields = block.fields;
         for(int e = 0; e < fields.size(); e++){
-            methodImplementation.append(fields.get(e).fieldMember[0] + " " + fields.get(e).fieldMember[1] );
+            methodImplementation.append(fields.get(e).fieldMember[0] + " " + fields.get(e).fieldMember[1] + ";\n");
 
         }
         ArrayList<String> expressions = block.expressionStatement;

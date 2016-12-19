@@ -56,16 +56,24 @@ public class DataLayout {
             fillFieldMap(classes.get(c.getParent()));
         }
         GNode fields = GNode.create("Fields");
-        for (GNode f: c.getFields()) {
+        for (int i = 0; i < 2; i++) {
             GNode fieldDec = GNode.create("FieldDeclaration");
-            fieldDec = f;
+            fieldDec = c.getFields().get(i);
             fields.add(fieldDec);
         }
+
         for(GNode n: fieldMap) {
             GNode fieldDec = GNode.create("FieldDeclaration");
             fieldDec = n;
             fields.add(fieldDec);
         }
+        for (int i = 2; i < c.getFields().size(); i++) {
+            GNode fieldDec = GNode.create("FieldDeclaration");
+            fieldDec = c.getFields().get(i);
+            fields.add(fieldDec);
+        }
+
+
         return fields;
 
     }

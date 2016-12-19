@@ -8,6 +8,7 @@ import xtc.tree.Visitor;
 import java.io.PrintWriter;
 
 public class ClassDeclarationMutator extends Visitor {
+    static String testName;
     String className;
     String classExtension;
     ClassBodyMutator classBody;
@@ -80,19 +81,24 @@ public class ClassDeclarationMutator extends Visitor {
         vtable.append(vtCall);
         outputWriter.println(vtable);
     }
-    
+
+    // prints the array specialization of each class
     public void printArraySpecialization(PrintWriter outputWriter) {
         StringBuffer arraySpec = new StringBuffer();
-        arraySpec.append("\ntemplate<>\njava::lang::Class Array<java::lang::" + className + ">::__class() {\n" +
-                "static java::lang::Class k =\n + new java::lang::__Class(literal(\"[Ljava.lang." + className + ";\"),\n");
+        arraySpec.append("\ntemplate<>\njava::lang::Class Array<inputs::" + testName + "::" + className + ">::__class() {\n" +
+                "static java::lang::Class k =\n + new java::lang::__Class(literal(\"[Linputs::" + testName + "::" + className + ";\"),\n");
 
         if (classExtension !=null) {
-            arraySpec.append(classExtension + ",\n");
+            arraySpec.append("inputs::" + testName + "::__" + classExtension + "::__class(),\n");
         }
 
         arraySpec.append("java::lang::__Object::__class());\n" +
                 "    return k;\n}");
         outputWriter.println(arraySpec);
+    }
+
+    public static void setTestName(String s) {
+        testName = s;
     }
 
 }

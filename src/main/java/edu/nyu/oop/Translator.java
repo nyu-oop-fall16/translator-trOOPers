@@ -44,10 +44,9 @@ public class Translator {
     public void run() {
         makeHeaderAst();
         makeHeaderFile();
-        makeMutatedAst();
         makeImplementationFiles();
     }
-    
+
     // makes a C++ Header AST and returns its root node
     public GNode makeHeaderAst() {
         JavaAstVisitor v = new JavaAstVisitor();
@@ -66,35 +65,10 @@ public class Translator {
         maker.runVisitor(headerAst);
     }
 
-    public GNode makeMutatedAst() {
-        GNode copy = NodeUtil.deepCopyNode(listGNodes.get(0));
-        mutatedAst = MutateJavaAst.mutate(copy);
-        return mutatedAst;
-    }
-
     public void makeImplementationFiles() {
-        if (null == mutatedAst) {
-            makeMutatedAst();
-        }
-        OutputCppMaker outputMaker = new OutputCppMaker();
-        // get the list of strings to be printed after traversing ast
-        String outputContent=outputMaker.getOutputToBePrinted(mutatedAst);
-        outputMaker.printToOutputCpp(outputContent);
-
-        MainCppMaker mainMaker = new MainCppMaker();
-        String mainContent=mainMaker.getMainToBePrinted(mutatedAst);
-        mainMaker.printToMainCpp(mainContent);
+        RunMutator run = new RunMutator();
+        run.printOutput(listGNodes.get(0));
+        run.printMain(listGNodes.get(0));
     }
-
-    public GNode getHeaderAst() {
-        return headerAst;
-    }
-
-    public GNode getMutatedAst() {
-        return mutatedAst;
-    }
-
-
-
 
 }

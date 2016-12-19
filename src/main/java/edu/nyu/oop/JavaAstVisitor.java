@@ -35,7 +35,7 @@ public class JavaAstVisitor extends Visitor {
 
             ClassInfo thisClass = new ClassInfo();
             thisClass.setName(currentClass);
-            thisClass.initialize();
+            thisClass.addVTptr();
 
             //Accessing the classBody node, iterating through it children, and processing the FieldDeclaration Nodes.
             Node classBody = NodeUtil.dfs(n, "ClassBody");
@@ -66,6 +66,8 @@ public class JavaAstVisitor extends Visitor {
                     }
                 }
             }
+
+            thisClass.addVT();
 
             //Accessing the constructor node of the class and extracting the parameters.
             List<Node> constructors = NodeUtil.dfsAll(n, "ConstructorDeclaration");

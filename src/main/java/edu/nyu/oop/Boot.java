@@ -50,7 +50,6 @@ public class Boot extends Tool {
         bool("generateListGNodes", "generateListGNodes", false, "Generate list of GNodes of the java class and its dependencies.").
         bool("printHeaderAst", "printHeaderAst", false, "Generates and prints the AST for the header file.").
         bool("printHeaderFile", "printHeaderFile", false, "Writes a header file from the C++ AST.").
-        bool("printMutatedAst", "printMutatedAst", false, "Mutates the Java Ast files to correspond with C++ files.").
         bool("printImplementationFiles", "printImplementationFiles", false, "Generates the output.cpp files and main.cpp files using mutated Asts.").
         bool("runTranslator", "runTranslator", false, "Translates a Java file into C++ files.");
     }
@@ -117,15 +116,7 @@ public class Boot extends Tool {
             translator.makeHeaderFile();
         }
 
-
-        if (runtime.test("printMutatedAst")) {
-            GNode rootNode = translator.getMutatedAst();
-            // check the Ast in console
-            runtime.console().pln("Mutate: ").format(rootNode).pln().flush();
-        }
-
-
-        // passes the mutated Ast to be used to create the implementation files
+        // makes the mutated Ast and uses it to create the implementation files
         if (runtime.test("printImplementationFiles")) {
            translator.makeImplementationFiles();
         }

@@ -80,5 +80,19 @@ public class ClassDeclarationMutator extends Visitor {
         vtable.append(vtCall);
         outputWriter.println(vtable);
     }
+    
+    public void printArraySpecialization(PrintWriter outputWriter) {
+        StringBuffer arraySpec = new StringBuffer();
+        arraySpec.append("\ntemplate<>\njava::lang::Class Array<java::lang::" + className + ">::__class() {\n" +
+                "static java::lang::Class k =\n + new java::lang::__Class(literal(\"[Ljava.lang." + className + ";\"),\n");
+
+        if (classExtension !=null) {
+            arraySpec.append(classExtension + ",\n");
+        }
+
+        arraySpec.append("java::lang::__Object::__class());\n" +
+                "    return k;\n}");
+        outputWriter.println(arraySpec);
+    }
 
 }

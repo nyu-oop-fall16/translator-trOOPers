@@ -22,13 +22,15 @@ public class ClassInfo {
     private ArrayList<GNode> fields = new ArrayList<GNode>();
     private ArrayList<MethodInfo> methods = new ArrayList<MethodInfo>();
 
-    // This method provides the class with the VTable pointer and object. Every class has these. As they are added
-    // right after the class object is created and its name is set, the method is called "initialize."
-    public void initialize() {
+    // These methods provide the class with the VTable pointer and object.
+    public void addVTptr() {
         String vTname = "__" + name + "_VT";
 
         addField(GNode.create("Modifiers"), (vTname + "*"), "__vptr");
+    }
 
+    public void addVT() {
+        String vTname = "__" + name + "_VT";
         GNode vTmod = GNode.create("Modifiers");
         vTmod.add("static");
         addField(vTmod, vTname, "__vtable");

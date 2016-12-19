@@ -25,7 +25,8 @@ public class HeaderASTMaker {
 
         for (String s: classes.keySet()) {
             ClassInfo c = classes.get(s);
-            mangleMethodNames(c);
+            mangleMethodNamesForInheritance(c);
+            mangleMethodNamesForFields(c);
 
             GNode thisClass = GNode.create("ClassDeclaration");
             GNode className = GNode.create("ClassName");
@@ -101,9 +102,9 @@ public class HeaderASTMaker {
         }
         return head;
     }
-    
+
     // This method uses name mangling to resolve name issues for overloaded methods within a class.
-    private void mangleMethodNames(ClassInfo c) {
+    private void mangleMethodNamesForInheritance(ClassInfo c) {
         HashMap<String,Boolean> nameCheck = new HashMap<String,Boolean>();
         for(MethodInfo m: c.getMethods()) {
             if(!nameCheck.containsKey(m.getName())) {
@@ -125,4 +126,19 @@ public class HeaderASTMaker {
             }
         }
     }
+
+    // This method uses name mangling to resolve name issues for when a method has the same name as a field (this is not
+    // allowed in C++).
+    private void mangleMethodNamesForFields(ClassInfo c) {
+        for (MethodInfo m: c.getMethods()) {
+            String methodName = m.getName();
+            for (GNode field: c.getFields()) {
+                String fieldName = field.getNode(2).getString(0);
+                if (methodName.equals(fieldName)) {
+                    m.setName(methodName + c.getName());
+                }
+            }
+        }
+    }
+
 }
